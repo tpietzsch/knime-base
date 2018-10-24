@@ -25,6 +25,7 @@
 			to the desired P2 update site.
 		-->
 		<knime.core.p2>${env.KNIME_CORE_P2}</knime.core.p2>
+		<knime.expressions.p2>${env.KNIME_EXPRESSIONS_P2}</knime.expressions.p2>
 		<knime.shared.p2>${env.KNIME_SHARED_P2}</knime.shared.p2>
 		<knime.tp.p2>${env.KNIME_TP_P2}</knime.tp.p2>
 	</properties>
@@ -43,6 +44,11 @@
 			<id>knime.core.p2</id>
 			<layout>p2</layout>
 			<url>${knime.core.p2}</url>
+		</repository>
+		<repository>
+			<id>knime.expressions.p2</id>
+			<layout>p2</layout>
+			<url>${knime.expressions.p2}</url>
 		</repository>
 		<repository>
 			<id>knime.shared.p2</id>
