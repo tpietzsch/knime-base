@@ -67,6 +67,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.workflow.LoopCountAware;
 import org.knime.core.node.workflow.LoopStartNodeTerminator;
 
 /**
@@ -77,7 +78,7 @@ import org.knime.core.node.workflow.LoopStartNodeTerminator;
  * @author Thorsten Meinl, University of Konstanz
  */
 public class XValidatePartitionModel extends NodeModel implements
-        LoopStartNodeTerminator {
+        LoopStartNodeTerminator, LoopCountAware {
     private final XValidateSettings m_settings = new XValidateSettings();
 
     private short[] m_partNumbers;
@@ -212,6 +213,22 @@ public class XValidatePartitionModel extends NodeModel implements
         m_currIteration++;
 
         return new BufferedDataTable[]{train.getTable(), test.getTable()};
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public long getLoopCount() {
+        return m_nrIterations;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public long getIteration() {
+        return m_currIteration;
     }
 
     /**

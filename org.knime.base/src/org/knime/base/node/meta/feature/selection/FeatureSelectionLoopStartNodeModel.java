@@ -63,6 +63,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.util.filter.NameFilterConfiguration.FilterResult;
 import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
+import org.knime.core.node.workflow.LoopCountAware;
 import org.knime.core.node.workflow.LoopStartNodeTerminator;
 
 /**
@@ -70,7 +71,7 @@ import org.knime.core.node.workflow.LoopStartNodeTerminator;
  *
  * @author Adrian Nembach, KNIME.com
  */
-public class FeatureSelectionLoopStartNodeModel extends NodeModel implements LoopStartNodeTerminator {
+public class FeatureSelectionLoopStartNodeModel extends NodeModel implements LoopStartNodeTerminator, LoopCountAware {
 
     private FeatureSelectionLoopStartSettings m_settings = new FeatureSelectionLoopStartSettings();
 
@@ -164,7 +165,21 @@ public class FeatureSelectionLoopStartNodeModel extends NodeModel implements Loo
         return m_featureSelector.getNextTables(exec, inData);
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public long getLoopCount() {
+        return m_maxIterations;
+    }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public long getIteration() {
+        return m_iteration;
+    }
 
     FeatureSelector getFeatureSelector() {
         return m_featureSelector;

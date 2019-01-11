@@ -59,6 +59,7 @@ import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObjectSpec;
+import org.knime.core.node.workflow.LoopCountAware;
 import org.knime.core.node.workflow.LoopStartNodeTerminator;
 
 /** Start of loop: pushes variables in input datatable columns
@@ -66,7 +67,8 @@ import org.knime.core.node.workflow.LoopStartNodeTerminator;
  *
  * @author M. Berthold, University of Konstanz
  */
-public class LoopStartVariableNodeModel extends TableToVariableNodeModel implements LoopStartNodeTerminator {
+public class LoopStartVariableNodeModel extends TableToVariableNodeModel
+    implements LoopStartNodeTerminator, LoopCountAware {
 
     // remember which iteration we are in:
     private int m_currentIteration = -1;
@@ -117,6 +119,22 @@ public class LoopStartVariableNodeModel extends TableToVariableNodeModel impleme
         pushFlowVariableInt("currentIteration", m_currentIteration);
         m_currentIteration++;
         return new PortObject[]{FlowVariablePortObject.INSTANCE};
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public long getLoopCount() {
+        return m_maxNrIterations;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public long getIteration() {
+        return m_currentIteration;
     }
 
     /**

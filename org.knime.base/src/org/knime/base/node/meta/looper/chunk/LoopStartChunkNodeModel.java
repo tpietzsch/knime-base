@@ -61,6 +61,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.workflow.LoopCountAware;
 import org.knime.core.node.workflow.LoopStartNodeTerminator;
 
 /**
@@ -71,7 +72,7 @@ import org.knime.core.node.workflow.LoopStartNodeTerminator;
  * @author Bernd Wiswedel, KNIME AG, Zurich, Switzerland
  */
 public class LoopStartChunkNodeModel extends NodeModel implements
-        LoopStartNodeTerminator {
+        LoopStartNodeTerminator, LoopCountAware {
 
     private LoopStartChunkConfiguration m_config;
 
@@ -81,6 +82,8 @@ public class LoopStartChunkNodeModel extends NodeModel implements
 
     // loop variants
     private int m_iteration;
+
+    private int m_totalChunkCount = -1;
 
     /**
      * Creates a new model.
@@ -102,6 +105,7 @@ public class LoopStartChunkNodeModel extends NodeModel implements
         assert m_iteration == 0;
         pushFlowVariableInt("currentIteration", m_iteration);
         pushFlowVariableInt("maxIterations", 0);
+        m_totalChunkCount = 0;
         return inSpecs;
     }
 
@@ -147,8 +151,26 @@ public class LoopStartChunkNodeModel extends NodeModel implements
         cont.close();
         pushFlowVariableInt("currentIteration", m_iteration);
         pushFlowVariableInt("maxIterations", totalChunkCount);
+        m_totalChunkCount = totalChunkCount;
         m_iteration++;
         return new BufferedDataTable[] {cont.getTable()};
+    }
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public long getLoopCount() {
+        return m_totalChunkCount;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public long getIteration() {
+        return m_iteration;
     }
 
     /**
@@ -162,6 +184,7 @@ public class LoopStartChunkNodeModel extends NodeModel implements
         }
         m_iterator = null;
         m_table = null;
+        m_totalChunkCount = -1;
     }
 
     /** {@inheritDoc} */

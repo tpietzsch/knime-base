@@ -61,6 +61,7 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
+import org.knime.core.node.workflow.LoopCountAware;
 import org.knime.core.node.workflow.LoopStartNodeTerminator;
 
 /**
@@ -71,7 +72,7 @@ import org.knime.core.node.workflow.LoopStartNodeTerminator;
  * @author Thorsten Meinl, University of Konstanz
  */
 public class LoopStartIntervalNodeModel extends NodeModel implements
-        LoopStartNodeTerminator {
+        LoopStartNodeTerminator, LoopCountAware {
 
     private double m_value;
 
@@ -155,6 +156,23 @@ public class LoopStartIntervalNodeModel extends NodeModel implements
         // increment counter for next iteration
         m_value += m_settings.step();
         return inData;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public long getLoopCount() {
+        return (long)((m_settings.to() - m_settings.from()) / m_settings.step());
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public long getIteration() {
+        //TODO
+        return (long) (m_value / m_settings.step());
     }
 
     /**

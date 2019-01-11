@@ -64,6 +64,7 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.util.filter.NameFilterConfiguration.FilterResult;
 import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
+import org.knime.core.node.workflow.LoopCountAware;
 import org.knime.core.node.workflow.LoopStartNodeTerminator;
 
 /**
@@ -72,7 +73,7 @@ import org.knime.core.node.workflow.LoopStartNodeTerminator;
  *
  * @author Thorsten Meinl, University of Konstanz
  */
-public class ColumnListLoopStartNodeModel extends NodeModel implements LoopStartNodeTerminator {
+public class ColumnListLoopStartNodeModel extends NodeModel implements LoopStartNodeTerminator, LoopCountAware {
 
     /** Config identifier for columns for execution policy if no input
      * columns are selected. */
@@ -171,6 +172,26 @@ public class ColumnListLoopStartNodeModel extends NodeModel implements LoopStart
 
         return new BufferedDataTable[]{exec.createColumnRearrangeTable(
                 inData[0], crea, exec)};
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public long getLoopCount() {
+        if (m_included != null) {
+            return m_included.length;
+        } else {
+            return 0;
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public long getIteration() {
+        return m_iteration;
     }
 
     /**

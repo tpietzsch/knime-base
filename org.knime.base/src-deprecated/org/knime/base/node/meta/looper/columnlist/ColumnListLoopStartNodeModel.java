@@ -62,6 +62,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.workflow.LoopCountAware;
 import org.knime.core.node.workflow.LoopStartNodeTerminator;
 
 /**
@@ -71,13 +72,13 @@ import org.knime.core.node.workflow.LoopStartNodeTerminator;
  * @author Thorsten Meinl, University of Konstanz
  */
 public class ColumnListLoopStartNodeModel extends NodeModel implements
-        LoopStartNodeTerminator {
+        LoopStartNodeTerminator, LoopCountAware {
     private final ColumnListLoopStartSettings m_settings =
             new ColumnListLoopStartSettings();
 
     private int m_currentColIndex = 0;
 
-    private boolean m_lastIteration;
+    private int m_loopCount = 0;
 
     private int m_iteration;
 
@@ -163,12 +164,9 @@ public class ColumnListLoopStartNodeModel extends NodeModel implements
 
         m_currentColIndex++;
         if (m_settings.iterateAllColumns()) {
-            m_lastIteration =
-                    m_currentColIndex >= inData[0].getDataTableSpec()
-                            .getNumColumns();
+            m_loopCount = inData[0].getDataTableSpec().getNumColumns();
         } else {
-            m_lastIteration =
-                    m_currentColIndex >= m_settings.iterateOverColumns().size();
+            m_loopCount = m_settings.iterateOverColumns().size();
         }
 
         pushFlowVariableInt("currentIteration", m_iteration);
@@ -183,10 +181,26 @@ public class ColumnListLoopStartNodeModel extends NodeModel implements
      * {@inheritDoc}
      */
     @Override
+    public long getLoopCount() {
+        return m_loopCount;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public long getIteration() {
+        return m_iteration;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     protected void reset() {
         m_currentColIndex = 0;
         m_iteration = 0;
-        m_lastIteration = false;
+        m_loopCount = 0;
     }
 
     /**
@@ -194,7 +208,7 @@ public class ColumnListLoopStartNodeModel extends NodeModel implements
      */
     @Override
     public boolean terminateLoop() {
-        return m_lastIteration;
+        return m_currentColIndex >= m_loopCount;
     }
 
     /**
