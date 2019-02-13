@@ -54,7 +54,6 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -81,6 +80,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.KNIMEConstants;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.util.MultiFilesHistoryPanel;
 import org.knime.core.node.util.StringHistory;
 import org.knime.core.node.workflow.CredentialsProvider;
 import org.knime.core.node.workflow.ICredentials;
@@ -162,7 +162,7 @@ final class SendMailConfiguration {
     private String m_bcc;
     private String m_subject;
     private String m_text;
-    private URL[] m_attachedURLs = new URL[0];
+    private List<URL> m_attachedURLs = new ArrayList<>();
 
     private int m_smtpConnectionTimeout = DEFAULT_SMTP_CONNECTION_TIMEOUT;
     private int m_smtpReadTimeout = DEFAULT_SMTP_READ_TIMEOUT;
@@ -188,11 +188,7 @@ final class SendMailConfiguration {
             settings.addString("bcc", m_bcc);
             settings.addString("subject", m_subject);
             settings.addString("text", m_text);
-            String[] urlsAsArray = new String[m_attachedURLs.length];
-            for (int i = 0; i < urlsAsArray.length; i++) {
-                urlsAsArray[i] = m_attachedURLs[i].toString();
-            }
-            settings.addStringArray("attachedURLs", urlsAsArray);
+            settings.addString("attachedURLsString", MultiFilesHistoryPanel.urlsToSettingsString(m_attachedURLs));
 
             settings.addInt("smtpConnectionTimeout", m_smtpConnectionTimeout);
             settings.addInt("smtpReadTimeout", m_smtpReadTimeout);
@@ -251,25 +247,24 @@ final class SendMailConfiguration {
         m_bcc = settings.getString("bcc", "");
         m_subject = settings.getString("subject", "Workflow finished");
         m_text = settings.getString("text", "");
-        String[] urlAsArray = settings.getStringArray("attachedURLs", (String[])null);
-        if (urlAsArray == null) {
-            urlAsArray = new String[0];
+        m_attachedURLs.clear();
+        String[] urlAsArray;
+        if (settings.containsKey("attachedURLsString")) {
+            urlAsArray = MultiFilesHistoryPanel.splitURLString(settings.getString("attachedURLsString", null));
+        } else {
+            urlAsArray = settings.getStringArray("attachedURLs", new String[0]);
         }
-        List<URL> attachedURLsList = new ArrayList<URL>(urlAsArray.length);
         for (int i = 0; i < urlAsArray.length; i++) {
-            URL url;
             try {
-                url = new URL(urlAsArray[i]);
+            	m_attachedURLs.add(new URL(urlAsArray[i]));
             } catch (MalformedURLException ex) {
                 try {
-                    url = new File(urlAsArray[i]).toURI().toURL();
+                	m_attachedURLs.add(new File(urlAsArray[i]).toURI().toURL());
                 } catch (MalformedURLException ex1) {
                     continue; // invalid URL, give up and proceed with next in list
                 }
             }
-            attachedURLsList.add(url);
         }
-        m_attachedURLs = attachedURLsList.toArray(new URL[attachedURLsList.size()]);
 
         m_smtpConnectionTimeout = settings.getInt("smtpConnectionTimeout", DEFAULT_SMTP_CONNECTION_TIMEOUT);
         m_smtpReadTimeout = settings.getInt("smtpReadTimeout", DEFAULT_SMTP_READ_TIMEOUT);
@@ -317,23 +312,26 @@ final class SendMailConfiguration {
         m_bcc = settings.getString("bcc");
         m_subject = settings.getString("subject");
         m_text = settings.getString("text");
-        String[] urlAsArray = settings.getStringArray("attachedURLs", (String[])null);
-        if (urlAsArray == null) {
-            urlAsArray = new String[0];
-        }
-        m_attachedURLs = new URL[urlAsArray.length];
-        for (int i = 0; i < urlAsArray.length; i++) {
-            URL url;
-            try {
-                url = new URL(urlAsArray[i]);
-            } catch (MalformedURLException ex) {
+        m_attachedURLs.clear();
+        if (settings.containsKey("attachedURLsString")) {
+            m_attachedURLs
+                .addAll(MultiFilesHistoryPanel.settingsStringToURLList(settings.getString("attachedURLsString")));
+        } else {
+            String[] urlAsArray = settings.getStringArray("attachedURLs", (String[])null);
+            if (urlAsArray == null) {
+                urlAsArray = new String[0];
+            }
+            for (int i = 0; i < urlAsArray.length; i++) {
                 try {
-                    url = new File(urlAsArray[i]).toURI().toURL();
-                } catch (MalformedURLException ex1) {
-                    throw new InvalidSettingsException("Unparseable URL: " + urlAsArray, ex);
+                    m_attachedURLs.add(new URL(urlAsArray[i]));
+                } catch (MalformedURLException ex) {
+                    try {
+                        m_attachedURLs.add(new File(urlAsArray[i]).toURI().toURL());
+                    } catch (MalformedURLException ex1) {
+                        throw new InvalidSettingsException("Unparseable URL: " + urlAsArray, ex);
+                    }
                 }
             }
-            m_attachedURLs[i] = url;
         }
 
         m_smtpConnectionTimeout = settings.getInt("smtpConnectionTimeout", DEFAULT_SMTP_CONNECTION_TIMEOUT);
@@ -513,17 +511,18 @@ final class SendMailConfiguration {
     }
 
     /** @return the attachedURLs */
-    URL[] getAttachedURLs() {
+    List<URL> getAttachedURLs() {
         return m_attachedURLs;
     }
 
     /** @param attachedURLs the attachedURLs to set
      * @throws InvalidSettingsException if null or null elements. */
-    void setAttachedURLs(final URL[] attachedURLs) throws InvalidSettingsException {
-        if (attachedURLs == null || Arrays.asList(attachedURLs).contains(null)) {
+    void setAttachedURLs(final List<URL> attachedURLs) throws InvalidSettingsException {
+        if (attachedURLs == null || attachedURLs.contains(null)) {
             throw new InvalidSettingsException("url list must not be null or contain null elements");
         }
-        m_attachedURLs = attachedURLs;
+        m_attachedURLs.clear();
+        m_attachedURLs.addAll(attachedURLs);
     }
 
     /**  Checks if settings are complete and recipient addresses are OK (according

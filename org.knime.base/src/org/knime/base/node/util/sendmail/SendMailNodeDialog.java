@@ -58,7 +58,6 @@ import java.awt.event.MouseEvent;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import javax.swing.BorderFactory;
@@ -93,7 +92,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.FlowVariableListCellRenderer;
-import org.knime.core.node.util.MultipleURLList;
+import org.knime.core.node.util.MultiFilesHistoryPanel;
 import org.knime.core.node.util.StringHistoryPanel;
 import org.knime.core.node.util.ViewUtils;
 import org.knime.core.node.workflow.FlowVariable;
@@ -122,7 +121,7 @@ final class SendMailNodeDialog extends NodeDialogPane {
     private final JTextArea m_textArea;
     private final JRadioButton m_formatTextButton;
     private final JRadioButton m_formatHTMLButton;
-    private final MultipleURLList m_attachmentList;
+    private final MultiFilesHistoryPanel m_attachmentList;
 
     private final JSpinner m_smtpConnectionTimeout;
     private final JSpinner m_smtpReadTimeout;
@@ -176,8 +175,8 @@ final class SendMailNodeDialog extends NodeDialogPane {
                 }
             }
         });
-        m_attachmentList = new MultipleURLList(
-            SendMailConfiguration.getAttachmentListStringHistoryID(), true, new String[0]);
+        m_attachmentList = new MultiFilesHistoryPanel(SendMailConfiguration.getAttachmentListStringHistoryID(), true,
+            createFlowVariableModel("attachedURLsString", FlowVariable.Type.STRING), new String[0]);
 
         SpinnerModel connectTimeoutModel = new SpinnerNumberModel(2000, 0, Integer.MAX_VALUE, 1000);
         m_smtpConnectionTimeout = new JSpinner(connectTimeoutModel );
@@ -413,8 +412,7 @@ final class SendMailNodeDialog extends NodeDialogPane {
             case Text: m_formatTextButton.doClick(); break;
             default: throw new RuntimeException("Unsupported format");
         }
-        URL[] attachedURLs = config.getAttachedURLs();
-        m_attachmentList.setSelectedURLs(Arrays.asList(attachedURLs));
+        m_attachmentList.setSelectedURLs(config.getAttachedURLs());
 
         m_smtpConnectionTimeout.setValue(config.getSmptConnectionTimeout());
         m_smtpReadTimeout.setValue(config.getSmptReadTimeout());
@@ -449,14 +447,14 @@ final class SendMailNodeDialog extends NodeDialogPane {
         config.setText(m_textArea.getText());
         config.setFormat(m_formatHTMLButton.isSelected() ? EMailFormat.Html : EMailFormat.Text);
         List<URL> urls = new ArrayList<URL>();
-        for (String url : m_attachmentList.getSelectedURLs()) {
+        for (String url : m_attachmentList.getSelectedFiles()) {
             try {
-                urls.add(MultipleURLList.convertToUrl(url));
+                urls.add(MultiFilesHistoryPanel.convertToUrl(url));
             } catch (MalformedURLException ex) {
                 throw new InvalidSettingsException("Malformed URL or non-existing file: " + url);
             }
         }
-        config.setAttachedURLs(urls.toArray(new URL[urls.size()]));
+        config.setAttachedURLs(urls);
 
         config.setSmptConnectionTimeout((Integer) m_smtpConnectionTimeout.getValue());
         config.setSmptReadTimeout((Integer) m_smtpReadTimeout.getValue());
