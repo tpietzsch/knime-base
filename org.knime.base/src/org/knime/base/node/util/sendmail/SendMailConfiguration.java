@@ -541,7 +541,7 @@ final class SendMailConfiguration {
      * @return The list of addresses, passed through the validator.
      * @throws AddressException If parsing fails.
      * @thorws InvalidSettingsException If domain not allowed. */
-    private InternetAddress[] parseAndValidateRecipients(final String addressString)
+    private static InternetAddress[] parseAndValidateRecipients(final String addressString)
             throws InvalidSettingsException, AddressException {
         String validDomainListString = System.getProperty(PROPERTY_ALLOWED_RECIPIENT_DOMAINS);
         InternetAddress[] addressArray = InternetAddress.parse(addressString, false);

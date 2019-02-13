@@ -83,10 +83,10 @@ import javax.swing.ScrollPaneConstants;
 import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 
-import org.knime.base.node.util.FlowVariableResolvable.FlowVariableResolver;
 import org.knime.base.node.util.sendmail.SendMailConfiguration.ConnectionSecurity;
 import org.knime.base.node.util.sendmail.SendMailConfiguration.EMailFormat;
 import org.knime.base.node.util.sendmail.SendMailConfiguration.EMailPriority;
+import org.knime.base.util.flowvariable.FlowVariableResolver;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeSettingsRO;
@@ -108,17 +108,17 @@ final class SendMailNodeDialog extends NodeDialogPane {
     private final StringHistoryPanel m_smtpPortPanel;
     private final JCheckBox m_useAuthenticationChecker;
     private final JCheckBox m_useCredentialsChecker;
-    private final JComboBox m_credentialsCombo;
+    private final JComboBox<String> m_credentialsCombo;
     private final StringHistoryPanel m_smtpUserPanel;
     private final JPasswordField m_smtpPasswordField;
-    private final JComboBox m_connectionSecurityCombo;
-    private final JComboBox m_connectionPriorityCombo;
+    private final JComboBox<ConnectionSecurity> m_connectionSecurityCombo;
+    private final JComboBox<EMailPriority> m_connectionPriorityCombo;
     private final StringHistoryPanel m_fromPanel;
     private final StringHistoryPanel m_toPanel;
     private final StringHistoryPanel m_ccPanel;
     private final StringHistoryPanel m_bccPanel;
     private final StringHistoryPanel m_subjectPanel;
-    private final JList m_flowVarList;
+    private final JList<FlowVariable> m_flowVarList;
     private final JTextArea m_textArea;
     private final JRadioButton m_formatTextButton;
     private final JRadioButton m_formatHTMLButton;
@@ -133,11 +133,11 @@ final class SendMailNodeDialog extends NodeDialogPane {
         m_smtpPortPanel = new StringHistoryPanel(SendMailConfiguration.getSmtpPortStringHistoryID());
         m_useAuthenticationChecker = new JCheckBox("SMTP host needs authentication");
         m_useCredentialsChecker = new JCheckBox("");
-        m_credentialsCombo = new JComboBox(new DefaultComboBoxModel());
+        m_credentialsCombo = new JComboBox<>(new DefaultComboBoxModel<>());
         m_smtpUserPanel = new StringHistoryPanel(SendMailConfiguration.getSmtpUserStringHistoryID());
         m_smtpPasswordField = new JPasswordField();
-        m_connectionSecurityCombo = new JComboBox(ConnectionSecurity.values());
-        m_connectionPriorityCombo = new JComboBox(EMailPriority.values());
+        m_connectionSecurityCombo = new JComboBox<>(ConnectionSecurity.values());
+        m_connectionPriorityCombo = new JComboBox<>(EMailPriority.values());
         m_fromPanel = new StringHistoryPanel(SendMailConfiguration.getFromStringHistoryID());
         m_toPanel = new StringHistoryPanel(SendMailConfiguration.getToStringHistoryID());
         m_ccPanel = new StringHistoryPanel(SendMailConfiguration.getToStringHistoryID());
@@ -159,7 +159,7 @@ final class SendMailNodeDialog extends NodeDialogPane {
         bg.add(m_formatHTMLButton);
         m_formatTextButton.doClick();
         m_textArea = new JTextArea(10, 30);
-        m_flowVarList = new JList(new DefaultListModel());
+        m_flowVarList = new JList<>(new DefaultListModel<>());
         m_flowVarList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         m_flowVarList.setCellRenderer(new FlowVariableListCellRenderer());
         m_flowVarList.addMouseListener(new MouseAdapter() {
@@ -167,7 +167,7 @@ final class SendMailNodeDialog extends NodeDialogPane {
             @Override
             public final void mouseClicked(final MouseEvent e) {
                 if (e.getClickCount() == 2) {
-                    FlowVariable o = (FlowVariable)m_flowVarList.getSelectedValue();
+                    FlowVariable o = m_flowVarList.getSelectedValue();
                     if (o != null) {
                         m_textArea.replaceSelection(FlowVariableResolver.getPlaceHolderForVariable(o));
                         m_flowVarList.clearSelection();
@@ -387,7 +387,7 @@ final class SendMailNodeDialog extends NodeDialogPane {
         if (m_useCredentialsChecker.isSelected() != config.isUseCredentials()) {
             m_useCredentialsChecker.doClick();
         }
-        DefaultComboBoxModel model = (DefaultComboBoxModel)m_credentialsCombo.getModel();
+        DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>)m_credentialsCombo.getModel();
         model.removeAllElements();
         for (String s : getCredentialsNames()) {
             model.addElement(s);
@@ -402,7 +402,7 @@ final class SendMailNodeDialog extends NodeDialogPane {
         setValueInStringHistoryPanel(m_ccPanel, config.getCc());
         setValueInStringHistoryPanel(m_bccPanel, config.getBcc());
         setValueInStringHistoryPanel(m_subjectPanel, config.getSubject());
-        DefaultListModel listModel = (DefaultListModel)m_flowVarList.getModel();
+        DefaultListModel<FlowVariable> listModel = (DefaultListModel<FlowVariable>)m_flowVarList.getModel();
         listModel.removeAllElements();
         for (FlowVariable e : getAvailableFlowVariables().values()) {
             listModel.addElement(e);
