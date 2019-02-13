@@ -52,6 +52,7 @@ import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -59,7 +60,6 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Properties;
 
-import javax.activation.FileTypeMap;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
@@ -696,7 +696,7 @@ final class SendMailConfiguration {
                 // java 7u7 is missing mimemtypes.default file:
                 // http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=7096063
                 // find mime type in this bundle (META-INF folder contains mime.types) and set it
-                filePart.setHeader("Content-Type", FileTypeMap.getDefaultFileTypeMap().getContentType(file));
+                filePart.setHeader("Content-Type", Files.probeContentType(file.toPath()));
                 mp.addBodyPart(filePart);
             }
 
