@@ -51,6 +51,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 
+import org.knime.base.node.io.csvreader.strict.Analyser;
+import org.knime.base.node.io.csvreader.strict.StrictCSVReader;
 import org.knime.base.node.io.filereader.FileAnalyzer;
 import org.knime.base.node.io.filereader.FileReaderExecutionMonitor;
 import org.knime.base.node.io.filereader.FileReaderNodeSettings;
@@ -74,6 +76,7 @@ import org.knime.core.util.tokenizer.SettingsStatus;
 
 /**
  * Model for CSV Reader node.
+ *
  * @noinstantiate This class is not intended to be instantiated by clients.
  * @noextend This class is not intended to be subclassed by clients.
  * @noreference This class is not intended to be referenced by clients.
@@ -88,7 +91,6 @@ public class CSVReaderNodeModel extends NodeModel {
     protected CSVReaderNodeModel() {
         super(0, 1);
     }
-
 
     /**
      * @param context the node creation context
@@ -106,8 +108,7 @@ public class CSVReaderNodeModel extends NodeModel {
 
     /** {@inheritDoc} */
     @Override
-    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs)
-            throws InvalidSettingsException {
+    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
         if (m_config == null) {
             throw new InvalidSettingsException("No settings available");
         }
@@ -117,21 +118,32 @@ public class CSVReaderNodeModel extends NodeModel {
             setWarningMessage(warning);
         }
 
-        return new DataTableSpec[] {null};
+        return new DataTableSpec[]{null};
     }
 
     /** {@inheritDoc} */
     @Override
-    protected BufferedDataTable[] execute(final BufferedDataTable[] inData,
-        final ExecutionContext exec) throws Exception {
+    protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
+        throws Exception {
+        long start = System.currentTimeMillis();
+        DataTableSpec spec = new Analyser().analyze(FileUtil.openStreamWithTimeout(FileUtil.toURL(m_config.getLocation())), 50);
+//        System.out.println("Analysis time:\t" + ((System.currentTimeMillis() - start) / 1000.0));
+        BufferedDataTable table ;
+        table =
+            new StrictCSVReader().read(exec, FileUtil.openStreamWithTimeout(FileUtil.toURL(m_config.getLocation())),spec);
+//        System.out.println("new csv reader time:\t" + ((System.currentTimeMillis() - start) / 1000.0));
 
-        FileTable fTable = createFileTable(exec);
+//        System.out.println("done creating the buffer");
+//        FileTable fTable = createFileTable(exec);
         try {
-            BufferedDataTable table = exec.createBufferedDataTable(fTable, exec.createSubExecutionContext(0.0));
-            return new BufferedDataTable[] {table};
+//            System.out.println("\n\nstarting old");
+            start = System.currentTimeMillis();
+//            table = exec.createBufferedDataTable(fTable, exec.createSubExecutionContext(0.0));
+//            System.out.println("old csv reader time:\t" + ((System.currentTimeMillis() - start) / 1000.0) + "\n\n");
+            return new BufferedDataTable[]{table};
         } finally {
             // fix AP-6127
-            fTable.dispose();
+            //            fTable.dispose();
         }
     }
 
@@ -230,7 +242,8 @@ public class CSVReaderNodeModel extends NodeModel {
             }
         }
         exec.setMessage("Buffering file");
-        return new FileTable(tableSpec, settings, readExec);
+        final FileTable t = new FileTable(tableSpec, settings, readExec);
+        return t;
     }
 
     /** {@inheritDoc} */
@@ -241,15 +254,13 @@ public class CSVReaderNodeModel extends NodeModel {
 
     /** {@inheritDoc} */
     @Override
-    protected void validateSettings(final NodeSettingsRO settings)
-    throws InvalidSettingsException {
+    protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
         new CSVReaderConfig().loadSettingsInModel(settings);
     }
 
     /** {@inheritDoc} */
     @Override
-    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
-            throws InvalidSettingsException {
+    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
         CSVReaderConfig config = new CSVReaderConfig();
         config.loadSettingsInModel(settings);
         m_config = config;
@@ -265,17 +276,15 @@ public class CSVReaderNodeModel extends NodeModel {
 
     /** {@inheritDoc} */
     @Override
-    protected void saveInternals(
-            final File nodeInternDir, final ExecutionMonitor exec)
-            throws IOException, CanceledExecutionException {
+    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
+        throws IOException, CanceledExecutionException {
         // no internals
     }
 
     /** {@inheritDoc} */
     @Override
-    protected void loadInternals(
-            final File nodeInternDir, final ExecutionMonitor exec)
-            throws IOException, CanceledExecutionException {
+    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
+        throws IOException, CanceledExecutionException {
         // no internals
     }
 
