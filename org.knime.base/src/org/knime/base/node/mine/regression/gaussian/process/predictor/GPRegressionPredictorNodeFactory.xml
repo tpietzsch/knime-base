@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<knimeNode icon="./regression_predict.png" type="Predictor" xmlns="http://knime.org/node/v3.6" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v3.6 http://knime.org/node/v3.6.xsd">
+    <name>Gaussian Process Regression Predictor</name>
+    <shortDescription>Predicts the response using a gaussian process regression model.</shortDescription>
+    <fullDescription>
+        <intro>
+	        Predicts the response using a gaussian process regression model.
+			The node needs to be connected to a gaussian process regression node model and some
+			test data. It is only executable if the test data contains the columns
+			that are used by the learner model. This node appends a new columns
+			to the input table containing the prediction for each row.
+			<br/><br/>
+			
+		</intro>
+	</fullDescription>
+    <ports>
+        <inPort index="0" name="Regression Model">The gaussian process regression model</inPort>
+        <inPort index="1" name="Data for prediction">Table for prediction. Missing values will give missing values in the output.</inPort>
+        <outPort index="0" name="Predicted data">Table from input with an additional prediction and variance column.</outPort>
+	</ports>
+</knimeNode>

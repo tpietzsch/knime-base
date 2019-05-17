@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<knimeNode icon="./logistic_regression_learn.png" type="Learner" xmlns="http://knime.org/node/v3.6" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v3.6 http://knime.org/node/v3.6.xsd">
+    <name>Gaussian Process Regression Learner</name>
+    <shortDescription>Performs a Gaussian Process regression.</shortDescription>
+    <fullDescription>
+        <intro>
+            Performs a gaussian process regression. Select in the dialog a 
+            target column (combo box on top), i.e. the response.
+            The node will use a Gaussian Kernel as the Mercer Kernel for the computation.
+            The two
+            lists in the center of the dialog allow you to include only certain 
+            columns which represent the (independent) variables.
+            Make sure the columns you want to have included being in the right
+            "include" list.
+            
+            See article in wikipedia about 
+            <a href="https://en.wikipedia.org/wiki/Gaussian_process">logistic regression</a>
+            for an overview about the topic.
+            The feature columns and the target column must have the same length and missing values are not allowed.
+        </intro>
+        <tab name="Settings">
+        <option name="Target column">
+            Select the target column. Only columns with nominal data are allowed. The reference category is empty
+            if the domain of the target column is not available. In this case the node determines the domain values right 
+            before computing the logistic regression model and chooses the last domain value as the targets reference 
+            category.
+        </option>
+        <option name="Feature selection">
+            Specify the independent columns that should be included in the regression model. 
+            Numeric and nominal data can be included.
+        </option>
+        <option name="Sigma">
+            The smooth/width parameter of Gaussian kernel.
+        </option>
+        <option name="Lambda">
+            The shrinkage/regularization parameter of the Gaussian Process.
+        </option>
+        </tab>
+	</fullDescription>
+    <ports>
+        <inPort index="0" name="Input data">Table on which to perform regression. The input must not contain missing values, you have to fix them by e.g. using the Missing Values node and the feature and target columns must have the same length.</inPort>
+        <outPort index="0" name="Model for Predictor">Model to connect to a predictor node.</outPort>
+	</ports>
+</knimeNode>

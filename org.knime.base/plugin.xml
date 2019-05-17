@@ -4,6 +4,7 @@
    <extension-point id="pmmlports" name="pmml.ports" schema="schema/pmmlports.exsd"/>
    <extension-point id="AggregationOperator" name="AggregationOperator" schema="schema/org.knime.base.AggregationOperator.exsd"/>
    <extension-point id="MissingCellHandler" name="MissingCellHandler" schema="schema/MissingCellHandler.exsd"/>
+   <extension-point id="GaussianProcess" name="gaussian.process" schema="schema/GaussianProcess.exsd"/>
     <extension
          point="org.knime.workbench.repository.categories">
       <category
@@ -1989,8 +1990,17 @@
       </node>
       <node
             category-path="/analytics/mining/logreg"
+            factory-class="org.knime.base.node.mine.regression.gaussian.process.learner.GPRegLearnerNodeFactory">
+      </node>
+      <node
+            category-path="/analytics/mining/logreg"
             deprecated="false"
             factory-class="org.knime.base.node.mine.regression.logistic.predictor.LogisticRegressionPredictorNodeFactory">
+      </node>
+      <node
+            category-path="/analytics/mining/logreg"
+            deprecated="false"
+            factory-class="org.knime.base.node.mine.regression.gaussian.process.predictor.GPRegressionPredictorNodeFactory">
       </node>
       <node
             category-path="/manipulation/column/column-convert+replace"
@@ -2286,5 +2296,13 @@
             specClass="org.knime.base.node.meta.feature.selection.FeatureSelectionModel"
             specSerializer="org.knime.base.node.meta.feature.selection.FeatureSelectionModel$NewSpecSerializer">
       </portType>
+        <portType
+              hidden="false"
+              name="Gaussian Process Regression Model"
+              objectClass="org.knime.base.node.mine.regression.gaussian.process.model.GaussianProcessRegressionPortObject"
+              objectSerializer="org.knime.base.node.mine.regression.gaussian.process.model.GaussianProcessRegressionPortObject$Serializer"
+              specClass="org.knime.base.node.mine.regression.gaussian.process.model.GaussianProcessRegressionPortObjectSpec"
+              specSerializer="org.knime.base.node.mine.regression.gaussian.process.model.GaussianProcessRegressionPortObjectSpec$Serializer">
+        </portType>
      </extension>   
 </plugin>
