@@ -4,7 +4,6 @@
    <extension-point id="pmmlports" name="pmml.ports" schema="schema/pmmlports.exsd"/>
    <extension-point id="AggregationOperator" name="AggregationOperator" schema="schema/org.knime.base.AggregationOperator.exsd"/>
    <extension-point id="MissingCellHandler" name="MissingCellHandler" schema="schema/MissingCellHandler.exsd"/>
-   <extension-point id="GaussianProcess" name="gaussian.process" schema="schema/GaussianProcess.exsd"/>
     <extension
          point="org.knime.workbench.repository.categories">
       <category
@@ -163,7 +162,7 @@
             icon="icons/missing.gif"
             level-id="regression"
             name="Linear/Polynomial Regression"
-            path="/analytics/mining"/>
+            path="/analytics/mining/"/>
       <category
             after="clustering"
             icon="icons/missing.gif"
@@ -492,6 +491,13 @@
             level-id="xai"
             name="Model Explanation"
             path="labs/">
+      </category>
+      <category
+            icon="icons/missing.gif"
+            level-id="gpreg"
+            locked="true"
+            name="Gaussian Process Regression"
+            path="/analytics/mining/">
       </category>      
    </extension>
             
@@ -1989,7 +1995,7 @@
             factory-class="org.knime.base.node.mine.regression.logistic.learner4.LogRegLearnerNodeFactory4">
       </node>
       <node
-            category-path="/analytics/mining/logreg"
+            category-path="/analytics/mining/gpreg"
             factory-class="org.knime.base.node.mine.regression.gaussian.process.learner.GPRegLearnerNodeFactory">
       </node>
       <node
@@ -1998,7 +2004,7 @@
             factory-class="org.knime.base.node.mine.regression.logistic.predictor.LogisticRegressionPredictorNodeFactory">
       </node>
       <node
-            category-path="/analytics/mining/logreg"
+            category-path="/analytics/mining/gpreg"
             deprecated="false"
             factory-class="org.knime.base.node.mine.regression.gaussian.process.predictor.GPRegressionPredictorNodeFactory">
       </node>
