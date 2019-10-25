@@ -61,11 +61,15 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.knime.core.node.FSConnectionFlowVariableProvider;
+import org.knime.core.util.FileUtil;
 import org.knime.core.util.Pair;
+import org.knime.filehandling.core.connections.TimeoutPath;
 import org.knime.filehandling.core.filefilter.FileFilter;
 
 /**
- * Class used to scan files in directories.
+ * Helper class used to get a list of {@link Path Paths} based on the given {@link FSConnectionFlowVariableProvider} and
+ * {@link SettingsModelFileChooser2}. It retrieves the necessary {@link FileSystem}, sets a {@link FileFilter} if needed
+ * and stores counts about filtered files.
  *
  * @author Julian Bunzel, KNIME GmbH, Berlin
  */
@@ -83,8 +87,11 @@ public final class FileChooserHelper {
     /** Pair of integer containing the number of listed files and the number of filtered files. */
     private Pair<Integer, Integer> m_counts;
 
+    /** Timeout in milliseconds */
+    private final int m_timeout;
+
     /**
-     * Creates a new instance of {@link FileChooserHelper}.
+     * Creates a new instance of {@link FileChooserHelper}. Uses the default timeout, if a timeout is necessary.
      *
      * @param provider the {@link FSConnectionFlowVariableProvider} used to retrieve a file system from a flow variable
      *            if necessary
@@ -93,10 +100,25 @@ public final class FileChooserHelper {
      */
     public FileChooserHelper(final FSConnectionFlowVariableProvider provider, final SettingsModelFileChooser2 settings)
         throws IOException {
+        this(provider, settings, FileUtil.getDefaultURLTimeoutMillis());
+    }
+
+    /**
+     * Creates a new instance of {@link FileChooserHelper}.
+     *
+     * @param provider the {@link FSConnectionFlowVariableProvider} used to retrieve a file system from a flow variable
+     *            if necessary
+     * @param settings the settings object containing necessary information about e.g. file filtering
+     * @param timeoutInMillis the connection/read timeout in milliseconds
+     * @throws IOException thrown when the file system could not be retrieved.
+     */
+    public FileChooserHelper(final FSConnectionFlowVariableProvider provider, final SettingsModelFileChooser2 settings,
+        final int timeoutInMillis) throws IOException {
 
         m_filter = settings.getFilterFiles() ? Optional.of(new FileFilter(settings)) : Optional.empty();
         m_settings = settings;
         m_fileSystem = FileSystemHelper.retrieveFileSystem(provider, settings);
+        m_timeout = timeoutInMillis;
     }
 
     /**
@@ -110,14 +132,14 @@ public final class FileChooserHelper {
 
     /**
      * Assumes that the file specified in the settings model is a folder, scans the folder for files matching the filter
-     * from the settings model, and returns a list of matching {@link Path}s.
+     * from the settings model, and returns a list of matching {@link TimeoutPath TimeoutPaths}.
      *
-     * @return a list of paths that matched the filter from the settings model.
+     * @return a list of TimeoutPath that matched the filter from the settings model.
      * @throws IOException thrown if directory could not be scanned
      */
-    public final List<Path> scanDirectoryTree() throws IOException {
+    public final List<TimeoutPath> scanDirectoryTree() throws IOException {
         setCounts(0, 0);
-        final Path dirPath = m_fileSystem.getPath(m_settings.getPathOrURL());
+        final TimeoutPath dirPath = getPathFromSettings();
         final boolean includeSubfolders = m_settings.getIncludeSubfolders();
 
         final List<Path> paths;
@@ -133,27 +155,21 @@ public final class FileChooserHelper {
                 setCounts(paths.size(), 0);
             }
         }
-        return paths;
+
+        return paths.stream().map(p -> new TimeoutPath(p, m_timeout)).collect(Collectors.toList());
     }
 
     /**
-     * Returns a list of {@link Path} if the input String represents a directory its contents are scanned, otherwise the
-     * list contains the file, if it is readable.
+     * Returns a list of {@link TimeoutPath} if the input String represents a directory its contents are scanned,
+     * otherwise the list contains the file, if it is readable.
      *
-     * @return a list of path to read
+     * @return a list of TimeoutPaths to read
      * @throws IOException if an I/O error occurs
      */
-    public final List<Path> getPaths() throws IOException {
+    public final List<TimeoutPath> getPaths() throws IOException {
 
-        final Path pathOrUrl;
-        if (m_settings.getFileSystemChoice() == FileSystemChoice.getCustomFsUrlChoice()) {
-            final URI uri = URI.create(m_settings.getPathOrURL());
-            pathOrUrl = m_fileSystem.provider().getPath(uri);
-        } else {
-            pathOrUrl = m_fileSystem.getPath(m_settings.getPathOrURL());
-        }
-
-        final List<Path> toReturn;
+        final TimeoutPath pathOrUrl = getPathFromSettings();
+        final List<TimeoutPath> toReturn;
 
         if (Files.isDirectory(pathOrUrl)) {
             toReturn = scanDirectoryTree();
@@ -162,6 +178,23 @@ public final class FileChooserHelper {
         }
 
         return toReturn;
+    }
+
+    /**
+     * Creates and returns a new Path object according to the path or URL provided by the underlying settings model.
+     *
+     * @return TimeoutPath leading to the path or url provided by the underlying settings model
+     */
+    public TimeoutPath getPathFromSettings() {
+        final TimeoutPath pathOrUrl;
+        if (FileSystemChoice.getCustomFsUrlChoice().equals(m_settings.getFileSystemChoice())) {
+            final URI uri = URI.create(m_settings.getPathOrURL());
+            pathOrUrl = new TimeoutPath(m_fileSystem.provider().getPath(uri), m_timeout);
+        } else {
+            pathOrUrl = new TimeoutPath(m_fileSystem.getPath(m_settings.getPathOrURL()), m_timeout);
+        }
+
+        return pathOrUrl;
     }
 
     /**
@@ -183,5 +216,14 @@ public final class FileChooserHelper {
      */
     public final Pair<Integer, Integer> getCounts() {
         return m_counts;
+    }
+
+    /**
+     * Returns a clone of the underlying {@link SettingsModelFileChooser2}.
+     *
+     * @return a clone of the underlying {@code SettingsModelFileChooser2}
+     */
+    public final SettingsModelFileChooser2 getSettingsModel() {
+        return m_settings.clone();
     }
 }

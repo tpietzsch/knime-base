@@ -60,6 +60,7 @@ import org.knime.core.node.FSConnectionFlowVariableProvider;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSConnectionRegistry;
 import org.knime.filehandling.core.connections.url.URIFileSystemProvider;
+import org.knime.filehandling.core.connections.wrappedfs.WrappedFileSystem;
 
 /**
  * Utility class to obtain a NIO {@link FileSystem}.
@@ -85,14 +86,14 @@ public class FileSystemHelper {
 
         switch (choice.getType()) {
             case LOCAL_FS:
-                toReturn = FileSystems.getDefault();
+                toReturn = new WrappedFileSystem(FileSystems.getDefault());
                 break;
             case CUSTOM_URL_FS:
                 toReturn = URIFileSystemProvider.getInstance().newFileSystem(URI.create(settings.getPathOrURL()), null);
                 break;
             case KNIME_FS:
                 // FIXME: Return correct FileSystem
-                toReturn = FileSystems.getDefault();
+                toReturn = new WrappedFileSystem(FileSystems.getDefault());
                 break;
             case FLOW_VARIABLE_FS:
                 final String flowVariableName = choice.getId();
