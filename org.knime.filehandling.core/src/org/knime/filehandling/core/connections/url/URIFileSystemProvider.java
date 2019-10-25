@@ -67,7 +67,6 @@ import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
-import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.FileAttributeView;
@@ -76,7 +75,10 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
 
-import org.knime.filehandling.core.connections.base.attributes.BasicFileAttributesUtil;
+import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.connections.TimeoutPath;
+import org.knime.filehandling.core.connections.attributes.BasicFileAttributesUtil;
+import org.knime.filehandling.core.connections.attributes.FSBasicFileAttributeView;
 
 /**
  * Special file system provider that provides file handling functionality for a single (!) URL.
@@ -85,7 +87,7 @@ import org.knime.filehandling.core.connections.base.attributes.BasicFileAttribut
  */
 public class URIFileSystemProvider extends FileSystemProvider {
 
-    private final static URIFileSystemProvider SINGLETON_INSTANCE = new URIFileSystemProvider();
+    private static final URIFileSystemProvider SINGLETON_INSTANCE = new URIFileSystemProvider();
 
     /**
      * This class is a singleton, hence private constructor.
@@ -149,8 +151,16 @@ public class URIFileSystemProvider extends FileSystemProvider {
             throw new IllegalArgumentException("Path is from a different file system provider");
         }
 
-        final URIPath uriPath = (URIPath)path;
-        return uriPath.openURLConnection().getInputStream();
+        final URIPath uriPath;
+        final int timeout;
+        if (path instanceof TimeoutPath) {
+            uriPath = ((TimeoutPath)path).unwrap(URIPath.class);
+            timeout = ((TimeoutPath)path).getTimeout();
+        } else {
+            uriPath = (URIPath) path;
+            timeout = 0;
+        }
+        return uriPath.openURLConnection(timeout).getInputStream();
 
     }
 
@@ -160,8 +170,16 @@ public class URIFileSystemProvider extends FileSystemProvider {
             throw new IllegalArgumentException("Path is from a different file system provider");
         }
 
-        final URIPath uriPath = (URIPath)path;
-        return uriPath.openURLConnection().getOutputStream();
+        final URIPath uriPath;
+        final int timeout;
+        if (path instanceof TimeoutPath) {
+            uriPath = ((TimeoutPath)path).unwrap(URIPath.class);
+            timeout = ((TimeoutPath)path).getTimeout();
+        } else {
+            uriPath = (URIPath) path;
+            timeout = 0;
+        }
+        return uriPath.openURLConnection(timeout).getOutputStream();
     }
 
     /**
@@ -251,7 +269,12 @@ public class URIFileSystemProvider extends FileSystemProvider {
      */
     @Override
     public boolean isSameFile(final Path path, final Path path2) throws IOException {
-        if (path.getFileSystem().provider() != this || path2.getFileSystem().provider() != this) {
+        if ((path.getFileSystem().provider() != this || path2.getFileSystem().provider() != this)) {
+            return false;
+        }
+
+        if ((path instanceof TimeoutPath && !(path2 instanceof TimeoutPath))
+            || (!(path instanceof TimeoutPath) && path2 instanceof TimeoutPath)) {
             return false;
         }
 
@@ -309,13 +332,12 @@ public class URIFileSystemProvider extends FileSystemProvider {
         if (path.getFileSystem().provider() != this) {
             throw new IllegalArgumentException("Provided path is not a CustomURIPath");
         }
-
-        V toReturn = null;
-        if (type == BasicFileAttributeView.class) {
-            toReturn = (V)new URIFileAttributeView((URIPath)path);
+        try {
+            return (V)new FSBasicFileAttributeView(path.getFileName().toString(),
+                readAttributes(path, BasicFileAttributes.class));
+        } catch (final IOException ex) {
+            return null;
         }
-
-        return toReturn;
     }
 
     /**
@@ -330,14 +352,12 @@ public class URIFileSystemProvider extends FileSystemProvider {
             throw new IllegalArgumentException("Provided path is not a CustomURIPath");
         }
 
-        A toReturn = null;
+        final FSPath fsPath = (FSPath)path;
         if (type == BasicFileAttributes.class) {
-            toReturn = (A)getFileAttributeView(path, BasicFileAttributeView.class).readAttributes();
+            return (A)fsPath.getFileAttributes(type);
         } else {
             throw new UnsupportedOperationException("Only BasicFileAttributes are supported");
         }
-
-        return toReturn;
     }
 
     /**
