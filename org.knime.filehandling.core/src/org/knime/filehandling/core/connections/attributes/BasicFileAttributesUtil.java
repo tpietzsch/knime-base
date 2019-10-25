@@ -46,7 +46,7 @@
  * History
  *   Sep 3, 2019 (bjoern): created
  */
-package org.knime.filehandling.core.connections.base.attributes;
+package org.knime.filehandling.core.connections.attributes;
 
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Arrays;
