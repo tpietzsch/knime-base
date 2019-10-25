@@ -65,7 +65,6 @@ import java.util.concurrent.ExecutionException;
 import javax.swing.JLabel;
 import javax.swing.SwingWorker;
 
-import org.knime.core.node.FSConnectionFlowVariableProvider;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.util.Pair;
 
@@ -95,10 +94,8 @@ class StatusMessageSwingWorker extends SwingWorker<Pair<Color, String>, Pair<Col
 
     private static final Color SUCCESS_GREEN = new Color(136, 170, 0);
 
-    private final FSConnectionFlowVariableProvider m_connectionFlowVariableProvider;
 
-    /** Settings model */
-    private final SettingsModelFileChooser2 m_settingsModel;
+    private final FileChooserHelper m_helper;
 
     private final JLabel m_statusMessageLabel;
 
@@ -107,16 +104,14 @@ class StatusMessageSwingWorker extends SwingWorker<Pair<Color, String>, Pair<Col
      *
      * @param the label to update
      */
-    StatusMessageSwingWorker(final FSConnectionFlowVariableProvider connectionFlowVariableProvider,
-        final SettingsModelFileChooser2 settingsModel, final JLabel statusMessageLabel) {
-        m_connectionFlowVariableProvider = connectionFlowVariableProvider;
-        m_settingsModel = settingsModel;
+    StatusMessageSwingWorker(final FileChooserHelper helper, final JLabel statusMessageLabel) {
+        m_helper = helper;
         m_statusMessageLabel = statusMessageLabel;
     }
 
     @Override
     protected Pair<Color, String> doInBackground() throws Exception {
-        if (m_settingsModel.getFileSystemChoice().equals(FileSystemChoice.getCustomFsUrlChoice())) {
+        if (m_helper.getSettingsModel().getFileSystemChoice().equals(FileSystemChoice.getCustomFsUrlChoice())) {
             return mkSuccess("");
         }
 
@@ -125,20 +120,10 @@ class StatusMessageSwingWorker extends SwingWorker<Pair<Color, String>, Pair<Col
         // sleep for 200ms to allow for quick cancellation without getting stuck in IO
         Thread.sleep(200);
 
-        // get file systems
-        final FileChooserHelper helper;
-        try {
-            helper = new FileChooserHelper(m_connectionFlowVariableProvider, m_settingsModel);
-        } catch (Exception e) {
-            final String msg = "Could not get file system: " + ExceptionUtil.getDeepestErrorMessage(e, true);
-            LOGGER.debug(msg, e);
-            return mkError(msg);
-        }
-
         // instantiate a path
         final Path fileOrFolder;
         try {
-            fileOrFolder = helper.getFileSystem().getPath(m_settingsModel.getPathOrURL());
+            fileOrFolder = m_helper.getPathFromSettings();
         } catch (InvalidPathException e) {
             return mkError(ExceptionUtil.getDeepestErrorMessage(e, false));
         }
@@ -155,18 +140,18 @@ class StatusMessageSwingWorker extends SwingWorker<Pair<Color, String>, Pair<Col
         // if folder, then scan. If file, then do nothing
         Pair<Color, String> toReturn = mkSuccess("");
         if (basicAttributes.isDirectory()) {
-            toReturn = scanFolder(helper);
+            toReturn = scanFolder();
         }
 
         return toReturn;
     }
 
-    private static Pair<Color, String> scanFolder(final FileChooserHelper helper) {
+    private Pair<Color, String> scanFolder() {
         Pair<Color, String> toReturn;
 
         try {
-            helper.scanDirectoryTree();
-            final Pair<Integer, Integer> matchPair = helper.getCounts();
+            m_helper.scanDirectoryTree();
+            final Pair<Integer, Integer> matchPair = m_helper.getCounts();
 
             if (matchPair.getFirst() > 0) {
                 final String msg = format(SCANNED_FILES_MESSAGE, matchPair.getFirst(),

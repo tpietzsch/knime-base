@@ -56,6 +56,7 @@ import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.io.IOException;
 import java.util.Optional;
 
 import javax.swing.Box;
@@ -80,6 +81,7 @@ import org.knime.core.node.util.FileSystemBrowser.DialogType;
 import org.knime.core.node.util.FileSystemBrowser.FileSelectionMode;
 import org.knime.core.node.util.LocalFileSystemBrowser;
 import org.knime.core.node.workflow.FlowVariable.Type;
+import org.knime.core.util.FileUtil;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSConnectionRegistry;
 import org.knime.filehandling.core.filefilter.FileFilter.FilterType;
@@ -179,6 +181,12 @@ public class DialogComponentFileChooser2 extends DialogComponent {
 
     /** String used as button label */
     private static final String CONFIGURE_BUTTON_LABEL = "Configure";
+
+    /** A timeout used for the {@link StatusMessageSwingWorker} that scans a given the directory and therefore accesses
+     * or tries to connect to given paths. The default timeout is 0, meaning a timeout is not used at all. The timeout
+     * can be set by using {@link #setLegacyTimeout(int)} which should be done in case a node has its own timeout
+     * setting. */
+    private int m_legacyTimeout = FileUtil.getDefaultURLTimeoutMillis();
 
     /**
      * Creates a new instance of {@code DialogComponentFileChooser2}.
@@ -459,8 +467,14 @@ public class DialogComponentFileChooser2 extends DialogComponent {
 
         final SettingsModelFileChooser2 model = (SettingsModelFileChooser2)getModel();
         if (model.getPathOrURL() != null && !model.getPathOrURL().isEmpty()) {
-            m_statusMessageSwingWorker = new StatusMessageSwingWorker(m_connectionFlowVariableProvider,
-                ((SettingsModelFileChooser2)getModel()).clone(), m_statusMessage);
+            try {
+                m_statusMessageSwingWorker =
+                    new StatusMessageSwingWorker(new FileChooserHelper(m_connectionFlowVariableProvider,
+                        ((SettingsModelFileChooser2)getModel()).clone(), m_legacyTimeout), m_statusMessage);
+            } catch (IOException ex) {
+                m_statusMessage.setForeground(Color.RED);
+                m_statusMessage.setText("Could not get file system: " + ExceptionUtil.getDeepestErrorMessage(ex, true));
+            }
             m_statusMessageSwingWorker.execute();
         }
     }
@@ -638,6 +652,15 @@ public class DialogComponentFileChooser2 extends DialogComponent {
      */
     public void setSelectedFile(final String pathOrUrl) {
         m_fileHistoryPanel.setSelectedFile(pathOrUrl);
+    }
+
+    /**
+     * Sets the legacy timeout in milliseconds.
+     *
+     * @param timeoutInMillis timeout in milliseconds
+     */
+    public void setLegacyTimeout(final int timeoutInMillis) {
+        m_legacyTimeout = timeoutInMillis;
     }
 
     /**
