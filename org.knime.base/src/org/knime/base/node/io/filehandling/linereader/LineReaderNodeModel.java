@@ -74,6 +74,7 @@ import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.filehandling.core.connections.TimeoutPath;
 
 /**
  *
@@ -101,7 +102,7 @@ public class LineReaderNodeModel extends NodeModel {
     @Override
     protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
         throws Exception {
-        final List<Path> pathList = m_config.getPaths(new FSConnectionFlowVariableProvider(this));
+        final List<TimeoutPath> pathList = m_config.getPaths(new FSConnectionFlowVariableProvider(this));
 
         if (pathList.isEmpty()) {
             throw new InvalidSettingsException("No files selected");
@@ -111,7 +112,7 @@ public class LineReaderNodeModel extends NodeModel {
         final BufferedDataContainer container = exec.createDataContainer(spec);
         try {
             boolean skipHeader = m_config.getReadColHeader();
-            final Iterator<Path> paths = pathList.iterator();
+            final Iterator<TimeoutPath> paths = pathList.iterator();
             while (paths.hasNext()) {
 
                 exec.checkCanceled();
@@ -196,7 +197,7 @@ public class LineReaderNodeModel extends NodeModel {
         return !m_config.getSkipEmptyLines() || !s.trim().isEmpty();
     }
 
-    private DataTableSpec createOutputSpec(final List<Path> pathList) throws IOException {
+    private DataTableSpec createOutputSpec(final List<TimeoutPath> pathList) throws IOException {
         final String tableName = getTableName(pathList);
         final Path path = pathList.get(0);
         try (Stream<String> currentLines = Files.lines(path)) {
@@ -228,7 +229,7 @@ public class LineReaderNodeModel extends NodeModel {
      * @param pathes
      * @return
      */
-    private static String getTableName(final List<Path> pathes) {
+    private static String getTableName(final List<TimeoutPath> pathes) {
         Path namePath = pathes.get(0);
 
         if (pathes.size() > 1) {

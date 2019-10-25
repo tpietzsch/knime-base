@@ -49,7 +49,6 @@
 package org.knime.base.node.io.filehandling.linereader;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -61,6 +60,7 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelInteger;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.knime.filehandling.core.connections.TimeoutPath;
 import org.knime.filehandling.core.defaultnodesettings.FileChooserHelper;
 import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2;
 
@@ -133,7 +133,7 @@ public class LineReaderConfig {
      * @return a list of paths
      * @throws IOException
      */
-    public List<Path> getPaths(final FSConnectionFlowVariableProvider provider) throws IOException {
+    public List<TimeoutPath> getPaths(final FSConnectionFlowVariableProvider provider) throws IOException {
         final FileChooserHelper helper = new FileChooserHelper(provider, getFileChooserModel());
         return helper.getPaths();
     }
