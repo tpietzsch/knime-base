@@ -44,36 +44,26 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Oct 19, 2016 (simon): created
+ *   Jan 15, 2020 (Simon Schmid, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.time.node.convert.stringtodatetime;
-
-import java.util.Arrays;
-import java.util.Locale;
+package org.knime.base.node.io.filereaderTEST;
 
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
 
 /**
- * The node factory of the node which converts strings to the new date&time types.
  *
- * @author Simon Schmid, KNIME.com, Konstanz, Germany
+ * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  */
-public final class StringToDateTimeNodeFactory extends NodeFactory<StringToDateTimeNodeModel> {
-
-    static {
-        if (Arrays.asList(Locale.getAvailableLocales()).contains(Locale.getDefault())) {
-            Locale.setDefault(Locale.US);
-        }
-    }
+public class FileReaderTestNodeFactory extends NodeFactory<FileReaderTestNodeModel> {
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public StringToDateTimeNodeModel createNodeModel() {
-        return new StringToDateTimeNodeModel();
+    public FileReaderTestNodeModel createNodeModel() {
+        return new FileReaderTestNodeModel();
     }
 
     /**
@@ -88,8 +78,7 @@ public final class StringToDateTimeNodeFactory extends NodeFactory<StringToDateT
      * {@inheritDoc}
      */
     @Override
-    public NodeView<StringToDateTimeNodeModel> createNodeView(final int viewIndex,
-        final StringToDateTimeNodeModel nodeModel) {
+    public NodeView<FileReaderTestNodeModel> createNodeView(final int viewIndex, final FileReaderTestNodeModel nodeModel) {
         return null;
     }
 
@@ -98,7 +87,7 @@ public final class StringToDateTimeNodeFactory extends NodeFactory<StringToDateT
      */
     @Override
     protected boolean hasDialog() {
-        return true;
+        return false;
     }
 
     /**
@@ -106,7 +95,7 @@ public final class StringToDateTimeNodeFactory extends NodeFactory<StringToDateT
      */
     @Override
     protected NodeDialogPane createNodeDialogPane() {
-        return new StringToDateTimeNodeDialog();
+        return null;
     }
 
 }

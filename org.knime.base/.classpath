@@ -2,6 +2,23 @@
 <classpath>
 	<classpathentry excluding="**-icon.ai|**-icon.svg" kind="src" path="src"/>
 	<classpathentry kind="src" path="src-deprecated"/>
+	<classpathentry exported="true" kind="lib" path="lib/univocity-parsers-2.8.4.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/jackson-databind-2.10.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/beanio-2.1.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/commons-csv-1.7.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/csveed-0.7.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/decs-3.1.0-RELEASE.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/esperio-csv-8.3.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/flatpack-4.0.4.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/jackson-dataformat-csv-2.10.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/javacsv-2.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/jcsv-1.4.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/opencsv-5.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/ostermillerutils_1_07_00.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/sfm-csv-8.2.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/simplecsv-2.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/super-csv-2.4.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/way-io-2.1.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/schemas.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>

@@ -196,7 +196,7 @@ public class FileReaderNodeModel extends NodeModel {
                         LOGGER.info("Reading entry '" + it.getZipEntryName()
                                 + "' from the specified ZIP archive.");
                     }
-
+                    long start = System.currentTimeMillis();
                     while (it.hasNext()) {
                         row++;
                         DataRow next = it.next();
@@ -206,6 +206,7 @@ public class FileReaderNodeModel extends NodeModel {
                         rowOutput.push(next);
                     }
                     rowOutput.close();
+                    System.out.println(System.currentTimeMillis() -start);
 
                     if (it.zippedSourceHasMoreEntries()) {
                         // after reading til the end of the file this returns a valid

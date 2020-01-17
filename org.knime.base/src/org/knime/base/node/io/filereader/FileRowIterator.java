@@ -312,6 +312,13 @@ class FileRowIterator extends CloseableRowIterator {
         String rowHeader;
         DataCell[] row = new DataCell[rowLength];
 
+        // set the tokenizer related settings in the tokenizer
+//        m_tokenizer.setSettings(frSettings);
+//        long start = System.currentTimeMillis();
+//        while ((token = m_tokenizer.nextToken()) != null) {
+////            System.out.println(token);
+//        }
+//        System.out.println(System.currentTimeMillis() -start);
         // before anything else: check if there is more in the stream
         // this MUST be called, because it is the procedure that removes empty
         // lines (if we are supposed to).

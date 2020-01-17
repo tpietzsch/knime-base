@@ -107,7 +107,6 @@ implements ScopeEndNode<FlowTryCatchContext>, InactiveBranchConsumer {
     /**
      * {@inheritDoc}
      */
-    @Override
     public Class<FlowTryCatchContext> getFlowScopeContextClass() {
         return FlowTryCatchContext.class;
     }

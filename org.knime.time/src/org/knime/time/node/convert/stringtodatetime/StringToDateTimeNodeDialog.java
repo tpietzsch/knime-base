@@ -470,8 +470,8 @@ final class StringToDateTimeNodeDialog extends DataAwareNodeDialogPane {
         m_dialogCompColFilter.loadSettingsFrom(settings, specs);
         m_dialogCompReplaceOrAppend.loadSettingsFrom(settings, specs);
         m_dialogCompSuffix.loadSettingsFrom(settings, specs);
-        m_typeCombobox.setSelectedItem(
-            DateTimeType.valueOf(settings.getString("typeEnum", DateTimeType.LOCAL_DATE_TIME.name())));
+        m_typeCombobox
+            .setSelectedItem(DateTimeType.valueOf(settings.getString("typeEnum", DateTimeType.LOCAL_DATE_TIME.name())));
         m_dialogCompFormatSelect.loadSettingsFrom(settings, specs);
         m_dialogCompLocale.loadSettingsFrom(settings, specs);
         m_dialogCompCancelOnFail.loadSettingsFrom(settings, specs);
@@ -494,8 +494,8 @@ final class StringToDateTimeNodeDialog extends DataAwareNodeDialogPane {
         m_dialogCompColFilter.loadSettingsFrom(settings, specs);
         m_dialogCompReplaceOrAppend.loadSettingsFrom(settings, specs);
         m_dialogCompSuffix.loadSettingsFrom(settings, specs);
-        m_typeCombobox.setSelectedItem(
-            DateTimeType.valueOf(settings.getString("typeEnum", DateTimeType.LOCAL_DATE_TIME.name())));
+        m_typeCombobox
+            .setSelectedItem(DateTimeType.valueOf(settings.getString("typeEnum", DateTimeType.LOCAL_DATE_TIME.name())));
         m_dialogCompFormatSelect.loadSettingsFrom(settings, specs);
         m_dialogCompLocale.loadSettingsFrom(settings, specs);
         m_dialogCompCancelOnFail.loadSettingsFrom(settings, specs);

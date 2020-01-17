@@ -4,7 +4,24 @@ Bundle-Name: KNIME Base Nodes
 Bundle-SymbolicName: org.knime.base;singleton:=true
 Bundle-Version: 4.2.0.qualifier
 Bundle-ClassPath: knime-base.jar,
-  lib/schemas.jar
+ lib/schemas.jar,
+ lib/beanio-2.1.0.jar,
+ lib/commons-csv-1.7.jar,
+ lib/csveed-0.7.0.jar,
+ lib/decs-3.1.0-RELEASE.jar,
+ lib/esperio-csv-8.3.0.jar,
+ lib/flatpack-4.0.4.jar,
+ lib/jackson-dataformat-csv-2.10.1.jar,
+ lib/javacsv-2.0.jar,
+ lib/jcsv-1.4.0.jar,
+ lib/opencsv-5.0.jar,
+ lib/ostermillerutils_1_07_00.jar,
+ lib/sfm-csv-8.2.1.jar,
+ lib/simplecsv-2.1.jar,
+ lib/super-csv-2.4.0.jar,
+ lib/way-io-2.1.0.jar,
+ lib/jackson-databind-2.10.1.jar,
+ lib/univocity-parsers-2.8.4.jar
 Bundle-Vendor: KNIME AG, Zurich, Switzerland
 Export-Package: org.knime.base.collection.list.split,
  org.knime.base.data.aggregation,
@@ -306,7 +323,8 @@ Require-Bundle: org.apache.commons.math;bundle-version="[2.1.0,2.2.0)",
  jenetics;bundle-version="[4.3.0,5.0.0]",
  org.knime.core.pmml;bundle-version="[4.0.0,5.0.0)",
  org.knime.filehandling.core;bundle-version="[4.1.0,5.0.0)",
- org.knime.core;bundle-version="[4.0.0,5.0.0)";visibility:=reexport
+ org.knime.core;bundle-version="[4.0.0,5.0.0)";visibility:=reexport,
+ com.fasterxml.jackson.core.jackson-core;bundle-version="2.10.2"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Eclipse-BuddyPolicy: dependent
 Eclipse-BundleShape: dir
