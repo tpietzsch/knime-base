@@ -532,11 +532,23 @@ public class KNIMEFileSystemProvider extends FileSystemProvider {
         }
 
         final KNIMEPath knimePath = (KNIMEPath)path;
-        if (onServer()) {
-            return FileUtil.openOutputConnection(knimePath.getURL(), "PUT").getOutputStream();
-        } else {
-            return Files.newOutputStream(knimePath.toLocalPath(), options);
+//        if (onServer()) {
+//            return FileUtil.openOutputConnection(knimePath.getURL(), "PUT").getOutputStream();
+//        } else {
+//            return Files.newOutputStream(knimePath.toLocalPath(), options);
+//        }
+
+        try {
+            final Path localPath = FileUtil.resolveToPath(knimePath.getURL());
+            if (localPath != null) {
+                return Files.newOutputStream(localPath, options);
+            } else {
+                return FileUtil.openOutputConnection(knimePath.getURL(), "PUT").getOutputStream();
+            }
+        } catch (URISyntaxException e) {
+            throw new IOException(e);
         }
+
     }
 
     private static int getTimeout() {
