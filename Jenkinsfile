@@ -9,7 +9,6 @@ properties([
 		upstream('knime-core/' + env.BRANCH_NAME.replaceAll('/', '%2F')),
 		upstream('knime-shared/' + env.BRANCH_NAME.replaceAll('/', '%2F')),
 		upstream('knime-expressions/' + env.BRANCH_NAME.replaceAll('/', '%2F')),
-		upstream('knime-tp/' + env.BRANCH_NAME.replaceAll('/', '%2F'))
 	]),
 	buildDiscarder(logRotator(numToKeepStr: '5')),
 	disableConcurrentBuilds()
@@ -19,16 +18,19 @@ try {
 	// provide the name of the update site project
 	knimetools.defaultTychoBuild('org.knime.update.base')
 
-/* 	workflowTests.runTests( */
-/* 		"org.knime.features.base.testing.feature.group", */
-/* 		false, */
-/* 		["knime-core", "knime-shared", "knime-expressions", "knime-tp"], */
-/* 	) */
+ 	workflowTests.runTests(
+        dependencies: [
+            repositories: ['knime-base', 'knime-shared', 'knime-python'],
+            // ius: ['org.knime.json.tests']
+        ],
+        withAssertions: true,
+        // configurations: testConfigurations
+    )
 
-/* 	stage('Sonarqube analysis') { */
-/* 		env.lastStage = env.STAGE_NAME */
-/* 		workflowTests.runSonar() */
-/* 	} */
+ 	stage('Sonarqube analysis') {
+ 		env.lastStage = env.STAGE_NAME
+ 		workflowTests.runSonar()
+ 	}
  } catch (ex) {
 	 currentBuild.result = 'FAILED'
 	 throw ex
