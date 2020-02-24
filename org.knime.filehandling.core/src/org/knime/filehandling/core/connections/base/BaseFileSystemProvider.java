@@ -128,7 +128,7 @@ public abstract class BaseFileSystemProvider extends FileSystemProvider {
      * @throws IOException if I/O error occurs
      */
     public synchronized FileSystem getOrCreateFileSystem(final URI uri, final Map<String, ?> env) throws IOException {
-        return m_fileSystem != null ? m_fileSystem : createFileSystem(uri, env);
+        return m_fileSystem != null ? m_fileSystem : newFileSystem(uri, env);
     }
 
     @Override
