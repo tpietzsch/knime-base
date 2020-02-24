@@ -70,6 +70,7 @@ import org.knime.core.node.util.FileSystemBrowser.DialogType;
 import org.knime.core.node.util.FileSystemBrowser.FileSelectionMode;
 import org.knime.core.util.Pair;
 import org.knime.core.util.SwingWorkerWithContext;
+import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.util.MountPointIDProviderService;
 
 /**
@@ -108,13 +109,19 @@ class StatusMessageSwingWorker extends SwingWorkerWithContext<Pair<Color, String
     private final FileSelectionMode m_fileSelectionMode;
 
     /**
-     * Creates a new instance of {@code StatusLineSwingWorker}.
+     * Creates a new instance of {@code StatusMessageSwingWorker}.
      *
-     * @param the label to update
+     * @param fs optional file system connection
+     * @param model the settings model of the file chooser
+     * @param timeoutInMillis the connection time out in milliseconds
+     * @param statusMessageLabel the label to update
+     * @param dialogType the type of the dialog
+     * @param fileSelectionMode the file selection mode
      */
-    StatusMessageSwingWorker(final FileChooserHelper helper, final JLabel statusMessageLabel,
-        final DialogType dialogType, final FileSelectionMode fileSelectionMode) {
-        m_helper = helper;
+    public StatusMessageSwingWorker(final Optional<FSConnection> fs, final SettingsModelFileChooser2 model,
+        final int timeoutInMillis, final JLabel statusMessageLabel, final DialogType dialogType,
+        final FileSelectionMode fileSelectionMode) {
+        m_helper = new FileChooserHelper(fs, model, timeoutInMillis);
         m_statusMessageLabel = statusMessageLabel;
         m_dialogType = dialogType;
         m_fileSelectionMode = fileSelectionMode;

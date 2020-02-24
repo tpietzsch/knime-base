@@ -81,7 +81,7 @@ import org.knime.filehandling.core.filefilter.FileFilter;
 public final class FileChooserHelper {
 
     /** FileSystem used to resolve the path */
-    private final FileSystem m_fileSystem;
+    private FileSystem m_fileSystem;
 
     /** Settings object containing necessary information about e.g. file filtering */
     private final SettingsModelFileChooser2 m_settings;
@@ -91,6 +91,10 @@ public final class FileChooserHelper {
 
     /** Pair of integer containing the number of listed files and the number of filtered files. */
     private Pair<Integer, Integer> m_counts;
+
+    final Optional<FSConnection> m_fsConnection;
+
+    final int m_timeoutInMillis;
 
     /**
      * Creates a new instance of {@link FileChooserHelper} that uses the default url timeout
@@ -113,21 +117,25 @@ public final class FileChooserHelper {
      *            necessary
      * @param settings the settings object containing necessary information about e.g. file filtering
      * @param timeoutInMillis timeout in milliseconds for the custom URL file system
-     * @throws IOException thrown when the file system could not be retrieved.
      */
     public FileChooserHelper(final Optional<FSConnection> fs, final SettingsModelFileChooser2 settings,
-        final int timeoutInMillis) throws IOException {
+        final int timeoutInMillis) {
         m_filter = new FileFilter(settings.getFileFilterSettings());
         m_settings = settings;
-        m_fileSystem = FileSystemHelper.retrieveFileSystem(fs, settings, timeoutInMillis);
+        m_fsConnection = fs;
+        m_timeoutInMillis = timeoutInMillis;
     }
 
     /**
      * Returns the file system.
      *
      * @return the file system
+     * @throws IOException thrown when the file system could not be retrieved.
      */
-    public final FileSystem getFileSystem() {
+    public final FileSystem getFileSystem() throws IOException {
+        if (m_fileSystem == null) {
+            m_fileSystem = FileSystemHelper.retrieveFileSystem(m_fsConnection, m_settings, m_timeoutInMillis);
+        }
         return m_fileSystem;
     }
 
@@ -140,7 +148,7 @@ public final class FileChooserHelper {
      */
     public final List<Path> scanDirectoryTree() throws IOException {
         setCounts(0, 0);
-        final Path dirPath = m_fileSystem.getPath(m_settings.getPathOrURL());
+        final Path dirPath = getFileSystem().getPath(m_settings.getPathOrURL());
         final boolean includeSubfolders = m_settings.getIncludeSubfolders();
 
         final List<Path> paths;
@@ -166,7 +174,7 @@ public final class FileChooserHelper {
      * @throws InvalidSettingsException
      */
     public final List<Path> getPaths() throws IOException, InvalidSettingsException {
-        Path pathOrUrl = getPathFromSettings();
+        final Path pathOrUrl = getPathFromSettings();
         final List<Path> toReturn;
 
         if (Files.isDirectory(pathOrUrl) && m_settings.readFilesFromFolder()) {
@@ -205,29 +213,30 @@ public final class FileChooserHelper {
      * @return Path leading to the path or url provided by the underlying settings model
      * @throws InvalidSettingsException If the path could not be constructed because of an invalid setting, or if
      *             accessing the path is not allowed in the current context (e.g. on the server).
+     * @throws IOException
      */
-    public Path getPathFromSettings() throws InvalidSettingsException {
+    public Path getPathFromSettings() throws InvalidSettingsException, IOException {
         final Path pathOrUrl;
         final Choice fileSystemChoice = m_settings.getFileSystemChoice().getType();
         switch (fileSystemChoice) {
             case CONNECTED_FS:
-                pathOrUrl = m_fileSystem.getPath(m_settings.getPathOrURL());
+                pathOrUrl = getFileSystem().getPath(m_settings.getPathOrURL());
                 break;
             case CUSTOM_URL_FS:
                 final URI uri = URI.create(m_settings.getPathOrURL().replace(" ", "%20"));
                 validateCustomURL(uri);
-                pathOrUrl = m_fileSystem.provider().getPath(uri);
+                pathOrUrl = getFileSystem().provider().getPath(uri);
                 break;
             case KNIME_FS:
-                pathOrUrl = m_fileSystem.getPath(m_settings.getPathOrURL());
+                pathOrUrl = getFileSystem().getPath(m_settings.getPathOrURL());
                 validateKNIMERelativePath(pathOrUrl);
                 break;
             case KNIME_MOUNTPOINT:
-                pathOrUrl = m_fileSystem.getPath(m_settings.getPathOrURL());
+                pathOrUrl = getFileSystem().getPath(m_settings.getPathOrURL());
                 break;
             case LOCAL_FS:
                 validateLocalFsAccess();
-                pathOrUrl = m_fileSystem.getPath(m_settings.getPathOrURL());
+                pathOrUrl = getFileSystem().getPath(m_settings.getPathOrURL());
                 break;
             default:
                 final String errMsg =
@@ -265,7 +274,8 @@ public final class FileChooserHelper {
         }
 
         if (isOnServer(workflowContext)) {
-            throw new InvalidSettingsException("Direct access to the local file system is not allowed on KNIME Server.");
+            throw new InvalidSettingsException(
+                "Direct access to the local file system is not allowed on KNIME Server.");
         }
     }
 
@@ -280,7 +290,7 @@ public final class FileChooserHelper {
                 throw new InvalidSettingsException("The path must be relative");
             }
 
-            final KNIMEPath knimePath = (KNIMEPath) path;
+            final KNIMEPath knimePath = (KNIMEPath)path;
             final URL url = knimePath.getURL();
             try {
                 // This called to check if the URL can be resolved, will throw an exception if not!
