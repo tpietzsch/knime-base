@@ -44,9 +44,14 @@
  */
 package org.knime.base.node.io.listfiles2;
 
+import java.util.Optional;
+
+import org.knime.core.node.BufferedDataTable;
+import org.knime.core.node.ConfigurableNodeFactory;
 import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.node.context.NodeCreationConfiguration;
+import org.knime.filehandling.core.port.FileSystemPortObject;
 
 /**
  * <code>NodeFactory</code> for the "List Files" Node.
@@ -54,16 +59,7 @@ import org.knime.core.node.NodeView;
  *
  * @author Peter
  */
-public class ListFilesNodeFactory
-        extends NodeFactory<ListFilesNodeModel> {
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public ListFilesNodeModel createNodeModel() {
-        return new ListFilesNodeModel();
-    }
+public class ListFilesNodeFactory extends ConfigurableNodeFactory<ListFilesNodeModel> {
 
     /**
      * {@inheritDoc}
@@ -77,8 +73,7 @@ public class ListFilesNodeFactory
      * {@inheritDoc}
      */
     @Override
-    public NodeView<ListFilesNodeModel> createNodeView(final int viewIndex,
-            final ListFilesNodeModel nodeModel) {
+    public NodeView<ListFilesNodeModel> createNodeView(final int viewIndex, final ListFilesNodeModel nodeModel) {
         return null;
     }
 
@@ -94,9 +89,27 @@ public class ListFilesNodeFactory
      * {@inheritDoc}
      */
     @Override
-    public NodeDialogPane createNodeDialogPane() {
+    protected Optional<PortsConfigurationBuilder> createPortsConfigBuilder() {
+        final PortsConfigurationBuilder b = new PortsConfigurationBuilder();
+        b.addOptionalInputPortGroup("in", FileSystemPortObject.TYPE);
+        b.addFixedOutputPortGroup("out", BufferedDataTable.TYPE);
+        return Optional.of(b);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected ListFilesNodeModel createNodeModel(final NodeCreationConfiguration creationConfig) {
+        return new ListFilesNodeModel(creationConfig);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected NodeDialogPane createNodeDialogPane(final NodeCreationConfiguration creationConfig) {
         return new ListFilesNodeDialog();
     }
 
 }
-

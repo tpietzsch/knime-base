@@ -53,8 +53,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -68,8 +66,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 
-import org.knime.base.node.io.listfiles2.ListFiles.Filter;
-import org.knime.base.util.WildcardMatcher;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.FlowVariableModel;
 import org.knime.core.node.InvalidSettingsException;
@@ -82,6 +78,7 @@ import org.knime.core.node.util.ConvenientComboBoxRenderer;
 import org.knime.core.node.util.FilesHistoryPanel;
 import org.knime.core.node.util.FilesHistoryPanel.LocationValidation;
 import org.knime.core.node.workflow.FlowVariable;
+import org.knime.filehandling.core.defaultnodesettings.DialogComponentFileChooser2;
 
 /**
  * <code>NodeDialog</code> for the "List Files" Node.
@@ -112,6 +109,8 @@ public class ListFilesNodeDialog extends NodeDialogPane implements ItemListener 
     private JRadioButton m_filterWildCardsRadio;
 
     private FilesHistoryPanel m_localdirectory;
+
+    private DialogComponentFileChooser2 m_fileChooser;
 
     /**
      * Creates a new List FilesNodeDialog.
@@ -191,8 +190,7 @@ public class ListFilesNodeDialog extends NodeDialogPane implements ItemListener 
         panel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Location:"));
 
         // Creating the browse button to get its preferred height
-        FlowVariableModel fvm =
-            createFlowVariableModel("file_location", FlowVariable.Type.STRING);
+        FlowVariableModel fvm = createFlowVariableModel("file_location", FlowVariable.Type.STRING);
         // Directory (local location)
         m_localdirectory =
             new FilesHistoryPanel(fvm, "filereader_history", LocationValidation.DirectoryInput, new String[]{});
@@ -202,6 +200,9 @@ public class ListFilesNodeDialog extends NodeDialogPane implements ItemListener 
         m_recursive = new JCheckBox();
         m_recursive.setText("include sub folders");
 
+        m_fileChooser = new DialogComponentFileChooser2(0, ListFilesNodeModel.createModel(), "test",
+            JFileChooser.OPEN_DIALOG, JFileChooser.DIRECTORIES_ONLY, fvm);
+
         GridBagConstraints c = new GridBagConstraints();
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridwidth = 1;
@@ -210,7 +211,7 @@ public class ListFilesNodeDialog extends NodeDialogPane implements ItemListener 
         c.weightx = 1;
         c.weighty = 0;
 
-        panel.add(m_localdirectory, c);
+        panel.add(m_fileChooser.getComponentPanel(), c);
 
         c.gridy++;
         panel.add(m_recursive, c);
@@ -278,56 +279,56 @@ public class ListFilesNodeDialog extends NodeDialogPane implements ItemListener 
      */
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
-
+        m_fileChooser.saveSettingsTo(settings);
         // check if all entered Locations are valid
-        String location = m_localdirectory.getSelectedFile();
-        if (location.trim().isEmpty()) {
-            throw new InvalidSettingsException("Please select a file!");
-        }
-
-        ListFilesSettings set = new ListFilesSettings();
-        set.setLocationString(location);
-        set.setRecursive(m_recursive.isSelected());
-        set.setCaseSensitive(m_caseSensitive.isSelected());
-        String extensions = m_extensionField.getEditor().getItem().toString();
-        set.setExtensionsString(extensions);
-
-        // save the selected radio-Button
-        Filter filter;
-        if (m_filterALLRadio.isSelected()) {
-            filter = Filter.None;
-        } else if (m_filterExtensionsRadio.isSelected()) {
-            filter = Filter.Extensions;
-        } else if (m_filterRegExpRadio.isSelected()) {
-            if (extensions.trim().isEmpty()) {
-                throw new InvalidSettingsException("Enter valid regular expressin pattern");
-            }
-            try {
-                String pattern = extensions;
-                Pattern.compile(pattern);
-            } catch (PatternSyntaxException pse) {
-                throw new InvalidSettingsException("Error in pattern: ('" + pse.getMessage(), pse);
-            }
-            filter = Filter.RegExp;
-        } else if (m_filterWildCardsRadio.isSelected()) {
-
-            if ((extensions).length() <= 0) {
-                throw new InvalidSettingsException("Enter valid wildcard pattern");
-            }
-            try {
-                String pattern = extensions;
-                pattern = WildcardMatcher.wildcardToRegex(pattern);
-                Pattern.compile(pattern);
-            } catch (PatternSyntaxException pse) {
-                throw new InvalidSettingsException("Error in pattern: '" + pse.getMessage(), pse);
-            }
-            filter = Filter.Wildcards;
-        } else { // one button must be selected though
-            filter = Filter.None;
-        }
-        set.setFilter(filter);
-        set.saveSettingsTo(settings);
-        m_localdirectory.addToHistory();
+//        String location = m_localdirectory.getSelectedFile();
+//        if (location.trim().isEmpty()) {
+//            throw new InvalidSettingsException("Please select a file!");
+//        }
+//
+//        ListFilesSettings set = new ListFilesSettings();
+//        set.setLocationString(location);
+//        set.setRecursive(m_recursive.isSelected());
+//        set.setCaseSensitive(m_caseSensitive.isSelected());
+//        String extensions = m_extensionField.getEditor().getItem().toString();
+//        set.setExtensionsString(extensions);
+//
+//        // save the selected radio-Button
+//        Filter filter;
+//        if (m_filterALLRadio.isSelected()) {
+//            filter = Filter.None;
+//        } else if (m_filterExtensionsRadio.isSelected()) {
+//            filter = Filter.Extensions;
+//        } else if (m_filterRegExpRadio.isSelected()) {
+//            if (extensions.trim().isEmpty()) {
+//                throw new InvalidSettingsException("Enter valid regular expressin pattern");
+//            }
+//            try {
+//                String pattern = extensions;
+//                Pattern.compile(pattern);
+//            } catch (PatternSyntaxException pse) {
+//                throw new InvalidSettingsException("Error in pattern: ('" + pse.getMessage(), pse);
+//            }
+//            filter = Filter.RegExp;
+//        } else if (m_filterWildCardsRadio.isSelected()) {
+//
+//            if ((extensions).length() <= 0) {
+//                throw new InvalidSettingsException("Enter valid wildcard pattern");
+//            }
+//            try {
+//                String pattern = extensions;
+//                pattern = WildcardMatcher.wildcardToRegex(pattern);
+//                Pattern.compile(pattern);
+//            } catch (PatternSyntaxException pse) {
+//                throw new InvalidSettingsException("Error in pattern: '" + pse.getMessage(), pse);
+//            }
+//            filter = Filter.Wildcards;
+//        } else { // one button must be selected though
+//            filter = Filter.None;
+//        }
+//        set.setFilter(filter);
+//        set.saveSettingsTo(settings);
+//        m_localdirectory.addToHistory();
     }
 
     /**
@@ -337,36 +338,36 @@ public class ListFilesNodeDialog extends NodeDialogPane implements ItemListener 
     @Override
     protected void loadSettingsFrom(final NodeSettingsRO settings, final DataTableSpec[] specs)
         throws NotConfigurableException {
-
-        ListFilesSettings set = new ListFilesSettings();
-        set.loadSettingsInDialog(settings);
-
-        // add previous selections to the extension textfield
-        String[] history = ListFilesSettings.getExtensionHistory();
-        m_extensionField.removeAllItems();
-        for (String str : history) {
-            m_extensionField.addItem(str);
-        }
-
-        m_caseSensitive.setSelected(set.isCaseSensitive());
-        String loc = set.getLocationString();
-        m_localdirectory.setSelectedFile(loc);
-        m_recursive.setSelected(set.isRecursive());
-        String ext = set.getExtensionsString();
-        m_extensionField.getEditor().setItem(ext == null ? "" : ext);
-        switch (set.getFilter()) {
-            case Extensions:
-                m_filterExtensionsRadio.doClick(); // trigger event
-                break;
-            case RegExp:
-                m_filterRegExpRadio.doClick();
-                break;
-            case Wildcards:
-                m_filterWildCardsRadio.doClick();
-                break;
-            default:
-                m_filterALLRadio.doClick();
-        }
+        m_fileChooser.loadSettingsFrom(settings, specs);
+//        ListFilesSettings set = new ListFilesSettings();
+//        set.loadSettingsInDialog(settings);
+//
+//        // add previous selections to the extension textfield
+//        String[] history = ListFilesSettings.getExtensionHistory();
+//        m_extensionField.removeAllItems();
+//        for (String str : history) {
+//            m_extensionField.addItem(str);
+//        }
+//
+//        m_caseSensitive.setSelected(set.isCaseSensitive());
+//        String loc = set.getLocationString();
+//        m_localdirectory.setSelectedFile(loc);
+//        m_recursive.setSelected(set.isRecursive());
+//        String ext = set.getExtensionsString();
+//        m_extensionField.getEditor().setItem(ext == null ? "" : ext);
+//        switch (set.getFilter()) {
+//            case Extensions:
+//                m_filterExtensionsRadio.doClick(); // trigger event
+//                break;
+//            case RegExp:
+//                m_filterRegExpRadio.doClick();
+//                break;
+//            case Wildcards:
+//                m_filterWildCardsRadio.doClick();
+//                break;
+//            default:
+//                m_filterALLRadio.doClick();
+//        }
 
     }
 }
