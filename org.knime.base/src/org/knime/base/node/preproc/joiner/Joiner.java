@@ -831,22 +831,15 @@ public final class Joiner {
             final int part) {
         innerIndexMap.clear();
 
-        Map<JoinTuple, Set<Integer>> thisInnerHash = innerHash.get(part);
-        for (Iterator<JoinTuple> iter = thisInnerHash.keySet().iterator();
-        iter.hasNext();) {
-            JoinTuple tuple = iter.next();
-            int index = tuple.hashCode() & m_bitMask;
-            if (index != part) {
-                iter.remove();
-            } else if (m_retainLeft && !m_matchAny) {
-                Set<Integer> thisInnerIndexMap = innerIndexMap.get(index);
-                if (null == thisInnerIndexMap) {
-                    thisInnerIndexMap = new HashSet<Integer>();
-                    innerIndexMap.put(index, thisInnerIndexMap);
-                }
-                for (Integer rowIndex : thisInnerHash.get(tuple)) {
-                    thisInnerIndexMap.add(rowIndex);
-                }
+        final Map<JoinTuple, Set<Integer>> thisInnerHash = innerHash.get(part);
+
+        thisInnerHash.keySet().removeIf( tuple -> ( tuple.hashCode() & m_bitMask ) != part );
+
+        if (m_retainLeft && !m_matchAny) {
+            final Set<Integer> thisInnerIndexMap = new HashSet<Integer>();
+            thisInnerHash.values().forEach(thisInnerIndexMap::addAll);
+            if (!thisInnerIndexMap.isEmpty()) {
+                innerIndexMap.put(part, thisInnerIndexMap);
             }
         }
     }
