@@ -368,20 +368,10 @@ public final class Joiner {
     // TODO: Why public?
     public List<String> getLeftIncluded(final DataTableSpec dataTableSpec)
     throws InvalidSettingsException {
-        List<String> leftCols = new ArrayList<String>();
-        for (DataColumnSpec column : dataTableSpec) {
-            leftCols.add(column.getName());
-        }
+        List<String> leftCols = getColumnNames(dataTableSpec);
+
         // Check if left joining columns are in table spec
-        Set<String> leftJoinCols = new HashSet<String>();
-        leftJoinCols.addAll(Arrays.asList(m_settings.getLeftJoinColumns()));
-        leftJoinCols.remove(Joiner2Settings.ROW_KEY_IDENTIFIER);
-        if (!leftCols.containsAll(leftJoinCols)) {
-            leftJoinCols.removeAll(leftCols);
-            throw new InvalidSettingsException("The top input table has "
-               + "changed. Some joining columns are missing: "
-               + ConvenienceMethods.getShortStringFrom(leftJoinCols, 3));
-        }
+        verifyJoiningColumnsPresent(Arrays.asList(m_settings.getLeftJoinColumns()), leftCols, "top");
 
         if (!m_settings.getLeftIncludeAll()) {
             List<String> leftIncludes =
@@ -403,20 +393,10 @@ public final class Joiner {
     // TODO: Why public?
     public List<String> getRightIncluded(final DataTableSpec dataTableSpec)
     throws InvalidSettingsException {
-        List<String> rightCols = new ArrayList<String>();
-        for (DataColumnSpec column : dataTableSpec) {
-            rightCols.add(column.getName());
-        }
+        List<String> rightCols = getColumnNames(dataTableSpec);
+
         // Check if right joining columns are in table spec
-        Set<String> rightJoinCols = new HashSet<String>();
-        rightJoinCols.addAll(Arrays.asList(m_settings.getRightJoinColumns()));
-        rightJoinCols.remove(Joiner2Settings.ROW_KEY_IDENTIFIER);
-        if (!rightCols.containsAll(rightJoinCols)) {
-            rightJoinCols.removeAll(rightCols);
-            throw new InvalidSettingsException("The bottom input table has "
-                    + "changed. Some joining columns are missing: "
-                    + ConvenienceMethods.getShortStringFrom(rightJoinCols, 3));
-        }
+        verifyJoiningColumnsPresent(Arrays.asList(m_settings.getRightJoinColumns()), rightCols, "bottom");
 
         if (!m_settings.getRightIncludeAll()) {
             List<String> rightIncludes =
@@ -429,6 +409,37 @@ public final class Joiner {
         }
         return rightCols;
     }
+
+    /**
+     * Returns list of column names in {@code dataTableSpec}.
+     *
+     * @param dataTableSpec
+     * @return column names in {@code dataTableSpec}.
+     */
+    private static List<String> getColumnNames(final DataTableSpec dataTableSpec)
+    {
+        List<String> names = new ArrayList<>(dataTableSpec.getNumColumns());
+        for (DataColumnSpec column : dataTableSpec) {
+            names.add(column.getName());
+        }
+        return names;
+    }
+
+    /**
+     * Throws {@code InvalidSettingsException} if some {@code joinColumns} are missing from {@code allColumns}.
+     */
+    private static void verifyJoiningColumnsPresent(final Collection<String> joinColumns,
+        final Collection<String> allColumns, final String tableName) throws InvalidSettingsException {
+        final Set<String> missingCols = new HashSet<>(joinColumns);
+        missingCols.remove(Joiner2Settings.ROW_KEY_IDENTIFIER);
+        missingCols.removeAll(allColumns);
+        if (!missingCols.isEmpty()) {
+            throw new InvalidSettingsException(
+                "The " + tableName + " input table has changed. Some joining columns are missing: "
+                    + ConvenienceMethods.getShortStringFrom(missingCols, 3));
+        }
+    }
+
     /**
      * Get warnings which occurred when processing the method
      * <code>getOutputSpec</code>.
@@ -660,7 +671,8 @@ public final class Joiner {
 
             if (saveToAddMoreRows) {
                 DataRow row = leftIter.next();
-                InputRow inputDataRow = new InputRow(row, counter,
+                final int rowIndex = counter;
+                InputRow inputDataRow = new InputRow(row, rowIndex,
                         InputRow.Settings.InDataPort.Left,
                         m_inputDataRowSettings);
 
@@ -668,7 +680,7 @@ public final class Joiner {
                     int partition = tuple.hashCode() & m_bitMask;
                     if (currParts.contains(partition)) {
                         addRow(leftTableHashed, leftOuterJoins,
-                                partition, tuple, inputDataRow);
+                                partition, tuple, rowIndex);
                         rowsAdded++;
                     }
                 }
@@ -822,17 +834,16 @@ public final class Joiner {
             final Map <Integer, Map<JoinTuple, Set<Integer>>> leftTableHashed,
             final Map <Integer, Set<Integer>> leftOuterJoins,
             final int partition, final JoinTuple joinTuple,
-            final InputRow row) {
-        final int index = row.getIndex();
+            final int rowIndex) {
         if (m_retainLeft && !m_matchAny) {
             leftOuterJoins
                     .computeIfAbsent(partition, i -> new HashSet<>())
-                    .add(index);
+                    .add(rowIndex);
         }
         leftTableHashed
                 .computeIfAbsent(partition, i -> new HashMap<>())
                 .computeIfAbsent(joinTuple, i -> new HashSet<>())
-                .add(index);
+                .add(rowIndex);
     }
 
 
