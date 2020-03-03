@@ -54,7 +54,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -528,28 +527,8 @@ public final class Joiner {
                 rightTable.getDataTableSpec(),
                 rightSurvivors);
 
-        /* numBits -> numPartitions
-         * 0 -> 1
-         * 1 -> 2
-         * 2 -> 4
-         * 3 -> 8
-         * 4 -> 16
-         * 5 -> 32
-         * 6 -> 64
-         * 7 -> 128
-         */
-        m_numBits = m_numBitsInitial;
-        int numPartitions = 0x0001 << m_numBits;
-        m_bitMask = 0; // TODO == numPartitions - 1
-        for (int i = 0; i < m_numBits; i++) {
-            m_bitMask += 0x0001 << i;
-        }
-
-        Set<Integer> pendingParts = new TreeSet<Integer>();
-        for (int i = 0; i < numPartitions; i++) {
-            pendingParts.add(i);
-        }
-
+        setNumBitsAndMask(m_numBitsInitial);
+        final Set<Integer> pendingParts = integersWithNumBits(m_numBitsInitial);
 
         JoinContainer joinCont = new JoinContainer(
                 m_outputDataRowSettings);
@@ -737,16 +716,8 @@ public final class Joiner {
                                 + "Processed: " + nonEmptyPartitions);
 
                         // increase number of partitions
-                        m_numBits = m_numBits + 1;
-                        m_bitMask = m_bitMask | (0x0001 << (m_numBits - 1));
-                        Set<Integer> pending = new TreeSet<Integer>();
-                        pending.addAll(pendingParts);
-                        pendingParts.clear();
-                        for (int i : pending) {
-                            pendingParts.add(i);
-                            int ii = i | (0x0001 << (m_numBits - 1));
-                            pendingParts.add(ii);
-                        }
+                        augmentPendingParts(pendingParts, 1 << m_numBits);
+                        setNumBitsAndMask(m_numBits + 1);
 
                         int currPart = nonEmptyPartitions.iterator().next();
                         currParts.clear();
@@ -830,11 +801,8 @@ public final class Joiner {
             final Map<Integer, Set<Integer>> innerIndexMap,
             final int part) {
         innerIndexMap.clear();
-
         final Map<JoinTuple, Set<Integer>> thisInnerHash = innerHash.get(part);
-
         thisInnerHash.keySet().removeIf( tuple -> ( tuple.hashCode() & m_bitMask ) != part );
-
         if (m_retainLeft && !m_matchAny) {
             final Set<Integer> thisInnerIndexMap = new HashSet<Integer>();
             thisInnerHash.values().forEach(thisInnerIndexMap::addAll);
@@ -1202,7 +1170,7 @@ public final class Joiner {
      * @param cols Columns of the table
      * @return the indices of the given columns in the table.
      */
-    private int[] getIndicesOf(final BufferedDataTable table,
+    private static int[] getIndicesOf(final BufferedDataTable table,
             final List<String> cols) {
         int[] indices = new int[cols.size()];
         int c = 0;
@@ -1216,6 +1184,49 @@ public final class Joiner {
             c++;
         }
         return indices;
+    }
+
+    /**
+     * Set {@link #m_numBits} and update {@link #m_bitMask} accordingly.
+     */
+    private void setNumBitsAndMask(final int numBits) {
+        if (numBits > m_numBitsMaximal) {
+            throw new IllegalArgumentException();
+        }
+        m_numBits = numBits;
+        final long numPartitions = 1l << numBits;
+        m_bitMask = (int)(numPartitions - 1);
+    }
+
+    /**
+     * Create set of all integers up to 2^{@code numBits}.
+     * <p>
+     * Note, that for {@code numBits > 32}, some added {@code int} values will be negative.
+     *
+     * @throws IllegalArgumentException if {@code numBits > 32}.
+     */
+    private static Set<Integer> integersWithNumBits(final int numBits) {
+        if (numBits > Integer.SIZE) {
+            throw new IllegalArgumentException();
+        }
+        final long numPartitions = 1l << numBits;
+        final Set<Integer> indices = new TreeSet<Integer>();
+        for (long i = 0; i < numPartitions; i++) {
+            indices.add((int)i);
+        }
+        return indices;
+    }
+
+    /**
+     * For every value {@code x} in {@code pendingParts}, also add {@code x|mask}.
+     * @param pendingParts
+     * @param mask
+     */
+    private static void augmentPendingParts( final Collection<Integer> pendingParts, final int mask )
+    {
+        Set<Integer> masked = new TreeSet<Integer>();
+        pendingParts.forEach(i -> masked.add(i | mask));
+        pendingParts.addAll(masked);
     }
 
     /**
