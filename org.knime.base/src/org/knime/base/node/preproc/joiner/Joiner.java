@@ -200,40 +200,46 @@ public final class Joiner {
         List<String> duplicates = new ArrayList<String>();
         duplicates.addAll(leftCols);
         duplicates.retainAll(rightCols);
+        if (!duplicates.isEmpty())
+        {
+            switch ( m_settings.getDuplicateHandling())
+            {
+                case AppendSuffix:
+                    final String suffix = m_settings.getDuplicateColumnSuffix();
+                    if ( suffix == null || suffix.equals("") ) {
+                        throw new InvalidSettingsException("No suffix for duplicate columns provided.");
+                    }
+                    break;
 
-        if (m_settings.getDuplicateHandling().equals(
-                DuplicateHandling.DontExecute)
-                && !duplicates.isEmpty()) {
-            throw new InvalidSettingsException(
-                    "Found duplicate columns, won't execute. Fix it in "
-                    + "\"Column Selection\" tab");
-        }
+                case AppendSuffixAutomatic:
+                    // TODO ????
+                    break;
 
-        if (m_settings.getDuplicateHandling().equals(
-                DuplicateHandling.Filter)) {
+                case Filter:
+                    for (String duplicate : duplicates) {
+                        DataType leftType = specs[0].getColumnSpec(duplicate).getType();
+                        DataType rightType =
+                            specs[1].getColumnSpec(duplicate).getType();
+                        if (!leftType.equals(rightType)) {
+                            m_configWarnings.add("The column \"" + duplicate
+                                    + "\" can be found in "
+                                    + "both input tables but with different data type. "
+                                    + "Only the one in the top input table will show "
+                                    + "up in the output table. Please change the "
+                                    + "Duplicate Column Handling if both columns "
+                                    + "should show up in the output table.");
+                        }
+                    }
 
-            for (String duplicate : duplicates) {
-                DataType leftType = specs[0].getColumnSpec(duplicate).getType();
-                DataType rightType =
-                    specs[1].getColumnSpec(duplicate).getType();
-                if (!leftType.equals(rightType)) {
-                    m_configWarnings.add("The column \"" + duplicate
-                            + "\" can be found in "
-                            + "both input tables but with different data type. "
-                            + "Only the one in the top input table will show "
-                            + "up in the output table. Please change the "
-                            + "Duplicate Column Handling if both columns "
-                            + "should show up in the output table.");
-                }
+                    rightCols.removeAll(leftCols);
+                    break;
+
+                case DontExecute:
+                default:
+                    throw new InvalidSettingsException(
+                        "Found duplicate columns, won't execute. Fix it in "
+                        + "\"Column Selection\" tab");
             }
-
-            rightCols.removeAll(leftCols);
-        }
-
-        if ((!duplicates.isEmpty()) && m_settings.getDuplicateHandling().equals(DuplicateHandling.AppendSuffix)
-                && (m_settings.getDuplicateColumnSuffix() == null
-                || m_settings.getDuplicateColumnSuffix().equals(""))) {
-            throw new InvalidSettingsException("No suffix for duplicate columns provided.");
         }
 
         // check if data types of joining columns do match
