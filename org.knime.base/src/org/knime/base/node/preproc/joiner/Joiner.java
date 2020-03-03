@@ -647,9 +647,9 @@ public final class Joiner {
 
         MemoryActionIndicator memIndicator = MemoryAlertSystem.getInstance().newIndicator();
 
-        int counter = 0;
+        int counter = 0; // == rowIndex
         long rowsAdded = 0;
-        CloseableRowIterator leftIter = leftTable.iterator();
+        final CloseableRowIterator leftIter = leftTable.iterator();
         // TODO: Should these be close()d explicitly?
         while (leftIter.hasNext()) {
             exec.checkCanceled();
@@ -823,33 +823,16 @@ public final class Joiner {
             final Map <Integer, Set<Integer>> leftOuterJoins,
             final int partition, final JoinTuple joinTuple,
             final InputRow row) {
-        if (m_retainLeft  && !m_matchAny) {
-            Set<Integer> indices = leftOuterJoins.get(partition);
-            if (null == indices) {
-                indices = new HashSet<Integer>();
-                leftOuterJoins.put(partition, indices);
-            }
-            indices.add(row.getIndex());
+        final int index = row.getIndex();
+        if (m_retainLeft && !m_matchAny) {
+            leftOuterJoins
+                    .computeIfAbsent(partition, i -> new HashSet<>())
+                    .add(index);
         }
-
-        Map<JoinTuple, Set<Integer>> partTuples =
-            leftTableHashed.get(partition);
-        if (null == partTuples) {
-            partTuples = new HashMap<JoinTuple, Set<Integer>>();
-            leftTableHashed.put(partition, partTuples);
-        }
-
-
-        Set<Integer> c = partTuples.get(joinTuple);
-        if (null != c) {
-            c.add(row.getIndex());
-        } else {
-            Set<Integer> list = new HashSet<Integer>();
-            list.add(row.getIndex());
-            partTuples.put(joinTuple, list);
-        }
-
-
+        leftTableHashed
+                .computeIfAbsent(partition, i -> new HashMap<>())
+                .computeIfAbsent(joinTuple, i -> new HashSet<>())
+                .add(index);
     }
 
 
@@ -908,7 +891,7 @@ public final class Joiner {
                 }
 
                 Set<Integer> localLeftOuterJoins = null;
-                if (m_retainLeft  && !m_matchAny) {
+                if (m_retainLeft && !m_matchAny) {
                     localLeftOuterJoins = leftOuterJoins.get(partition);
                 }
 
