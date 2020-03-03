@@ -91,6 +91,7 @@ class JoinTuple {
             return false;
         }
         JoinTuple that = (JoinTuple)obj;
+        // TODO: Assumes that.m_cells.length == this.m_cells.length. Is this a bug?
         for (int i = 0; i < this.m_cells.length; i++) {
             DataCell thisCell = this.m_cells[i];
             DataCell thatCell = that.m_cells[i];

@@ -329,7 +329,7 @@ public final class Joiner {
                         dcsc.removeAllHandlers();
                         dcsc.setName(newName);
                         outColSpecs.add(dcsc.createSpec());
-                        rightCols.add(newName);
+                        rightCols.add(newName); // TODO: WHY?
                     } else {
                         outColSpecs.add(columnSpec);
                     }
@@ -360,6 +360,7 @@ public final class Joiner {
      * @throws InvalidSettingsException if the input spec is not compatible with the settings
      * @since 2.12
      */
+    // TODO: Why public?
     public List<String> getLeftIncluded(final DataTableSpec dataTableSpec)
     throws InvalidSettingsException {
         List<String> leftCols = new ArrayList<String>();
@@ -394,6 +395,7 @@ public final class Joiner {
      * @throws InvalidSettingsException if the input spec is not compatible with the settings
      * @since 2.12
      */
+    // TODO: Why public?
     public List<String> getRightIncluded(final DataTableSpec dataTableSpec)
     throws InvalidSettingsException {
         List<String> rightCols = new ArrayList<String>();
@@ -532,7 +534,7 @@ public final class Joiner {
          */
         m_numBits = m_numBitsInitial;
         int numPartitions = 0x0001 << m_numBits;
-        m_bitMask = 0;
+        m_bitMask = 0; // TODO == numPartitions - 1
         for (int i = 0; i < m_numBits; i++) {
             m_bitMask += 0x0001 << i;
         }
@@ -663,6 +665,7 @@ public final class Joiner {
         int counter = 0;
         long rowsAdded = 0;
         CloseableRowIterator leftIter = leftTable.iterator();
+        // TODO: Should these be close()d explicitly?
         while (leftIter.hasNext()) {
             exec.checkCanceled();
             boolean saveToAddMoreRows =
@@ -932,6 +935,8 @@ public final class Joiner {
                     // skip and check for outer join when the left table does not have rows that fall
                     // in this partition
                     deferMatch = false;
+                    // TODO: Is this a bug???: If there are multiple joinTuple,
+                    // then the final value of deferMatch depends on the order in which they are encountered.
                     continue;
                 }
 
