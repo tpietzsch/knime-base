@@ -378,7 +378,7 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
             setIncludeSubfolders(config.getBoolean(INCLUDE_SUBFOLDERS_KEY, m_includeSubfolders));
             setFilterSettings(m_fileFilterSettings);
             m_fileFilterSettings.loadFromConfig(config);
-            m_fileOrFolderSettingsModel.loadSettingsFrom(settings);
+            m_fileOrFolderSettingsModel.loadSettingsFrom(settings.getNodeSettings(m_configName + "_f"));
         } catch (final InvalidSettingsException ex) {
             throw new NotConfigurableException(ex.getMessage());
         }
@@ -436,7 +436,7 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
         m_knimeMountpointFileSystem = config.getString(KNIME_MOUNTPOINT_FILESYSTEM_KEY);
         m_includeSubfolders = config.getBoolean(INCLUDE_SUBFOLDERS_KEY);
         m_fileFilterSettings.loadFromConfig(config);
-        m_fileOrFolderSettingsModel.loadSettingsFrom(settings);
+        m_fileOrFolderSettingsModel.loadSettingsFrom(settings.getNodeSettings(m_configName + "_f"));
         notifyChangeListeners();
     }
 
@@ -454,7 +454,7 @@ public final class SettingsModelFileChooser2 extends SettingsModel implements Cl
         config.addString(PATH_OR_URL_KEY, getPathOrURL());
         config.addBoolean(INCLUDE_SUBFOLDERS_KEY, getIncludeSubfolders());
         m_fileFilterSettings.saveToConfig(config);
-        m_fileOrFolderSettingsModel.saveSettingsTo(settings);
+        m_fileOrFolderSettingsModel.saveSettingsTo(settings.addNodeSettings(m_configName + "_f"));
     }
 
     @Override
