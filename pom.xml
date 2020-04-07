@@ -32,7 +32,7 @@
 		<module>org.knime.filehandling.core</module>
 		<module>org.knime.filehandling.core.tests</module>
 		<module>org.knime.time</module>
-		<module>org.knime.time.testing</module>
+		<module>org.knime.time.tests</module>
 		<module>org.knime.update.base</module>
 	</modules>
 
