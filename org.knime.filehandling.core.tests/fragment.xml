@@ -2,12 +2,6 @@
 <?eclipse version="3.4"?>
 <fragment>
    <extension
-         point="org.knime.testing.TestcaseCollector">
-      <TestcaseCollector
-            TestcaseCollector="org.knime.filehandling.core.BaseTestcaseCollector">
-      </TestcaseCollector>
-   </extension>
-   <extension
          point="org.knime.filehandling.FSTestInitializerProvider">
       <FSTestInitializerProvider
             ProviderClass="org.knime.filehandling.core.testing.local.LocalFSTestInitializerProvider">
