@@ -116,7 +116,7 @@ public class FSTestParameters {
 	}
 
 	private static Path defaultPropertiesPath() {
-		final Bundle bundle = Platform.getBundle("org.knime.filehandling.core.testing");
+		final Bundle bundle = Platform.getBundle("org.knime.filehandling.core.tests");
 		final URL propertiesURL = bundle.getEntry("resources/" + TEST_PROPERTIES_FILE_NAME);
 		try {
 			return Paths.get(FileLocator.resolve(propertiesURL).toURI());
