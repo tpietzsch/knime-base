@@ -15,8 +15,9 @@ properties([
 ])
 
 try {
-	// provide the name of the update site project
 	knimetools.defaultTychoBuild('org.knime.update.base')
+
+	runIntegratedTests()	
 
  	workflowTests.runTests(
         dependencies: [
@@ -41,4 +42,33 @@ try {
 	 notifications.notifyBuild(currentBuild.result);
  }
 
+def runIntegratedTests(){
+    node('maven'){ 
+        stage('Integrated Tests'){
+            env.lastStage = env.STAGE_NAME
+            checkout scm
+            withMavenJarsignerCredentials(options: [artifactsPublisher(disabled: true)]) {
+                withCredentials([usernamePassword(credentialsId: 'ARTIFACTORY_CREDENTIALS', passwordVariable: 'ARTIFACTORY_PASSWORD', usernameVariable: 'ARTIFACTORY_LOGIN')]) {
+                    sh '''
+                        export TEMP="${WORKSPACE}/tmp"
+                        mkdir "${TEMP}"
+                        
+                        XVFB=$(which Xvfb) || true
+                        if [[ -x "$XVFB" ]]; then
+                            Xvfb :$$ -pixdepths 24 -screen 0 1280x1024x24 +extension RANDR &
+                            XVFB_PID=$!
+                            export DISPLAY=:$$
+                        fi
+
+                        mvn -e -X -Dmaven.test.failure.ignore=true -Dknime.p2.repo=${P2_REPO} clean verify -P test
+                        if [[ -n "$XVFB_PID" ]]; then
+                            kill $XVFB_PID
+                        fi
+                    '''
+                }
+            }
+            junit allowEmptyResults: true, testResults: '**/target/surefire-reports/TEST-*.xml'
+        }
+    }
+}
 /* vim: set ts=4: */
