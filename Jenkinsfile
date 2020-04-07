@@ -20,7 +20,9 @@ try {
 
  	workflowTests.runTests(
         dependencies: [
-            repositories: ['knime-base', 'knime-shared', 'knime-python'],
+            repositories: ['knime-base', 'knime-shared', 'knime-python',
+            'knime-datageneration', 'knime-database', 'knime-timeseries',
+            'knime-jep', 'knime-js-base'],
             // ius: ['org.knime.json.tests']
         ],
         withAssertions: true,
