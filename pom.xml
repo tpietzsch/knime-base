@@ -13,28 +13,48 @@
 
 	<groupId>org.knime</groupId>
 	<artifactId>knime-base</artifactId>
-  <version>${revision}${changelist}</version>
+	<version>${revision}${changelist}</version>
 	<packaging>pom</packaging>
 
-  <properties>
-    <revision>4.2.0</revision>
-    <changelist>-SNAPSHOT</changelist>
-    <feature-branch-extension.branchListProperty>git.branch</feature-branch-extension.branchListProperty>
-    <feature-branch-extension.appendArtifactoryProperties>false</feature-branch-extension.appendArtifactoryProperties>
-  </properties>
+	<properties>
+		<revision>4.2.0</revision>
+		<changelist>-SNAPSHOT</changelist>
+		<feature-branch-extension.branchListProperty>git.branch</feature-branch-extension.branchListProperty>
+		<feature-branch-extension.appendArtifactoryProperties>false</feature-branch-extension.appendArtifactoryProperties>
+	</properties>
 
-	<modules>
-		<module>org.knime.base</module>
-		<module>org.knime.base.tests</module>
-		<module>org.knime.deprecated</module>
-		<module>org.knime.features.base</module>
-		<module>org.knime.features.filehandling.core</module>
-		<module>org.knime.filehandling.core</module>
-		<module>org.knime.filehandling.core.tests</module>
-		<module>org.knime.time</module>
-		<module>org.knime.time.tests</module>
-		<module>org.knime.update.base</module>
-	</modules>
+	<profiles>
+        <!-- Default Profile -->
+		<profile>
+			<id>build</id>
+			<modules>
+				<module>org.knime.base</module>
+				<module>org.knime.deprecated</module>
+				<module>org.knime.features.base</module>
+				<module>org.knime.features.filehandling.core</module>
+				<module>org.knime.filehandling.core</module>
+				<module>org.knime.time</module>
+				<module>org.knime.update.base</module>
+			</modules>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+		</profile>
+
+        <!-- Test Profile -->
+		<profile>
+			<id>test</id>
+			<modules>
+				<module>org.knime.base</module>
+				<module>org.knime.base.tests</module>
+				<module>org.knime.deprecated</module>
+				<module>org.knime.filehandling.core</module>
+				<module>org.knime.filehandling.core.tests</module>
+				<module>org.knime.time</module>
+				<module>org.knime.time.tests</module>
+			</modules>
+		</profile>
+	</profiles>
 
 	<repositories>
 		<repository>
