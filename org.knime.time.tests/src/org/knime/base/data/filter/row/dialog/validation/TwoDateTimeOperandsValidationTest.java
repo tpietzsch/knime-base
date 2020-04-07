@@ -56,25 +56,25 @@ import org.knime.core.data.def.StringCell;
 import org.mockito.Mock;
 
 @SuppressWarnings("javadoc")
-public class MultipleOperandsValidationTest extends AbstractMultipleDateTimeOperandsValidationTest {
+public class TwoDateTimeOperandsValidationTest extends AbstractMultipleDateTimeOperandsValidationTest {
 
     @Mock
     private Operator m_operator;
 
-    public MultipleOperandsValidationTest() {
-        super(new MultipleDateTimeOperandsValidation());
+    public TwoDateTimeOperandsValidationTest() {
+        super(new TwoDateTimeOperandsValidation());
     }
 
     @Test
-    public void shouldFail_whenNoValuesProvided() {
+    public void shouldAllowTwoValuesOnly() {
         // given
-        final MultipleDateTimeOperandsValidation validation = new MultipleDateTimeOperandsValidation();
+        final TwoDateTimeOperandsValidation validation = new TwoDateTimeOperandsValidation();
 
         final ColumnSpec columnSpec = new ColumnSpec("string", StringCell.TYPE);
 
-        // when values array has a value
+        // when values array has two values only
         ValidationResult result =
-            validation.apply(new OperatorParameters(columnSpec, m_operator, new String[]{"abc"}));
+            validation.apply(new OperatorParameters(columnSpec, m_operator, new String[]{"abc", "def"}));
 
         // then
         Assert.assertFalse("has errors", result.hasErrors());
@@ -85,7 +85,31 @@ public class MultipleOperandsValidationTest extends AbstractMultipleDateTimeOper
         // then
         Assert.assertTrue("no errors", result.hasErrors());
         Assert.assertThat(result.getErrors(), Matchers.hasSize(1));
-        Assert.assertThat(result.getErrors().get(0).getError(), Matchers.containsString("one value"));
+        Assert.assertThat(result.getErrors().get(0).getError(), Matchers.containsString("two value"));
+
+        // when values array is empty
+        result = validation.apply(new OperatorParameters(columnSpec, m_operator, new String[0]));
+
+        // then
+        Assert.assertTrue("no errors", result.hasErrors());
+        Assert.assertThat(result.getErrors(), Matchers.hasSize(1));
+        Assert.assertThat(result.getErrors().get(0).getError(), Matchers.containsString("two value"));
+
+        // when values array has one value
+        result = validation.apply(new OperatorParameters(columnSpec, m_operator, new String[]{"abc"}));
+
+        // then
+        Assert.assertTrue("no errors", result.hasErrors());
+        Assert.assertThat(result.getErrors(), Matchers.hasSize(1));
+        Assert.assertThat(result.getErrors().get(0).getError(), Matchers.containsString("two value"));
+
+        // when values array has three values
+        result = validation.apply(new OperatorParameters(columnSpec, m_operator, new String[]{"abc", "def", "xwz"}));
+
+        // then
+        Assert.assertTrue("no errors", result.hasErrors());
+        Assert.assertThat(result.getErrors(), Matchers.hasSize(1));
+        Assert.assertThat(result.getErrors().get(0).getError(), Matchers.containsString("two value"));
     }
 
 }
