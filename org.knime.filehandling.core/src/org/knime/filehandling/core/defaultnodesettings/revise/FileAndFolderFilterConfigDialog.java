@@ -46,7 +46,7 @@
  * History
  *   Aug 21, 2019 (bjoern): created
  */
-package org.knime.filehandling.core.filefilter;
+package org.knime.filehandling.core.defaultnodesettings.revise;
 
 import java.awt.Frame;
 import java.awt.GridBagConstraints;
@@ -62,19 +62,20 @@ import javax.swing.JPanel;
 import javax.swing.WindowConstants;
 
 import org.knime.core.node.KNIMEConstants;
+import org.knime.filehandling.core.filefilter.FileFilterPanel;
 
 /**
  * Dialog for file filtering options.
  *
  * @author Björn Lohrmann, KNIME GmbH, Berlin, Germany
  */
-public class FileFilterDialog extends JDialog {
+class FileAndFolderFilterConfigDialog extends JDialog {
 
     /** Serial version UID */
     private static final long serialVersionUID = 1L;
 
     /** Panel holding the file filtering components */
-    private final JPanel m_fileFilterPanel;
+    private final FileFilterPanel m_fileFilterPanel;
 
     /** Title for the dialog */
     private static final String TITLE_STRING = "File filter configuration";
@@ -97,7 +98,7 @@ public class FileFilterDialog extends JDialog {
      * @param owner the owner frame
      * @param panel the file filter panel
      */
-    public FileFilterDialog(final Frame owner, final JPanel panel) {
+    public FileAndFolderFilterConfigDialog(final Frame owner, final FileFilterPanel panel) {
         super(owner, TITLE_STRING, true);
         KNIMEConstants.getKNIMEIcon16X16().ifPresent(i -> setIconImage(i.getImage()));
 
