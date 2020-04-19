@@ -44,82 +44,20 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Mar 6, 2020 (bjoern): created
+ *   Apr 18, 2020 (bjoern): created
  */
 package org.knime.filehandling.core.connections;
-
-import java.io.IOException;
-import java.nio.file.FileSystem;
-import java.util.Optional;
-
-import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice.Choice;
 
 /**
  *
  * @author bjoern
  */
-public abstract class FSFileSystem<T extends FSPath> extends FileSystem {
+public interface FSConnectionFactory {
 
-    private final Choice m_fsChoice;
-
-    private final Optional<String> m_fsSpecifier;
-
-    /**
-     * @param fsChoice
-     * @param fsSpecifier
-     */
-    public FSFileSystem(final Choice fsChoice, final Optional<String> fsSpecifier) {
-        m_fsChoice = fsChoice;
-        m_fsSpecifier = fsSpecifier;
+    public default boolean isDefaultFSConnectionFactory() {
+        return false;
     }
 
-    public Choice getFileSystemChoice() {
-        return m_fsChoice;
-    }
+    public FSConnection createFromConfig(final FSConnectionConfig config);
 
-    /**
-     * Does nothing, since a file system must only be closed by the connection node that instantiated it. Nodes that
-     * only *use* a file system should invoke {@link FSConnection#close()} on the respective {@link FSConnection} object
-     * to release any blocked resources.
-     */
-    @Override
-    public final void close() throws IOException {
-        // do nothing
-    }
-
-    /**
-     * Actually closed this file system and releases any blocked resources (streams, etc). This method must only be
-     * called by the connection node, which has control of the file system lifecycle (hence the reduced visibility).
-     * Implementations are free to increase method visibility for their purposes.
-     *
-     * @throws IOException when something went wrong while closing the file system.
-     */
-    protected abstract void ensureClosed() throws IOException;
-
-    public Optional<String> getFileSystemSpecifier() {
-        return m_fsSpecifier;
-    }
-
-    void checkCompatibility(final FSLocation fsLocation) {
-        if (fsLocation.equals(FSLocation.NULL) || fsLocation.getFileSystemChoice() != m_fsChoice) {
-            throw new IllegalArgumentException(
-                String.format("Only FSLocations of type %s are allowed.", m_fsChoice));
-        }
-
-        if (!m_fsSpecifier.equals(fsLocation.getFileSystemSpecifier())) {
-            throw new IllegalArgumentException(
-                String.format("Provided FSLocation has specifier %s, but %s is required.", m_fsChoice));
-        }
-    }
-
-    public T getPath(final FSLocation fsLocation) {
-        checkCompatibility(fsLocation);
-        return getPath(fsLocation.getPath());
-    }
-
-    @Override
-    public abstract FSFileSystemProvider provider();
-
-    @Override
-    public abstract T getPath(String first, String... more);
 }
