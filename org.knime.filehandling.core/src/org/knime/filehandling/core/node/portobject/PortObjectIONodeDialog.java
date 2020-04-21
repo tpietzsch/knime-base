@@ -70,7 +70,7 @@ import org.knime.filehandling.core.defaultnodesettings.DialogComponentFileChoose
 import org.knime.filehandling.core.defaultnodesettings.FileSystemChoice;
 import org.knime.filehandling.core.defaultnodesettings.FilesHistoryPanel;
 import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2;
-import org.knime.filehandling.core.defaultnodesettings.revise.FilterOptionPanel;
+import org.knime.filehandling.core.defaultnodesettings.revise.FilterModeDialogComponent;
 import org.knime.filehandling.core.node.portobject.reader.PortObjectReaderNodeDialog;
 import org.knime.filehandling.core.node.portobject.writer.PortObjectWriterNodeDialog;
 
@@ -89,7 +89,7 @@ public abstract class PortObjectIONodeDialog<C extends PortObjectIONodeConfig> e
 
     private final List<JPanel> m_additionalPanels = new ArrayList<>();
 
-    private final FilterOptionPanel m_filterOptionPanel;
+    private final FilterModeDialogComponent m_filterOptionPanel;
 
     private final DialogComponentFileChooser2 m_filePanel;
 
@@ -109,9 +109,9 @@ public abstract class PortObjectIONodeDialog<C extends PortObjectIONodeConfig> e
      */
     protected PortObjectIONodeDialog(final PortsConfiguration portsConfig, final C config,
         final String fileChooserHistoryId, final int fileChooserDialogType, final int fileChooserSelectionMode) {
-        m_filterOptionPanel = new FilterOptionPanel();
-
         m_config = config;
+
+        m_filterOptionPanel = new FilterModeDialogComponent(m_config.getS());
         final SettingsModelFileChooser2 fileChooserModel = m_config.getFileChooserModel();
         final FlowVariableModel fvm = createFlowVariableModel(
             new String[]{fileChooserModel.getConfigName(), SettingsModelFileChooser2.PATH_OR_URL_KEY}, Type.STRING);
@@ -192,10 +192,10 @@ public abstract class PortObjectIONodeDialog<C extends PortObjectIONodeConfig> e
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(0, 5, 0, 5);
         gbc.weighty = 1;
-        panel.add(m_filterOptionPanel, gbc);
+        panel.add(m_filterOptionPanel.getSelectionModePanel(), gbc);
         gbc.gridy++;
-        panel.add(m_filterOptionPanel.getFileFilterOptionPanel(), gbc);
-        m_filterOptionPanel.addChangeListener(l -> System.out.println("triggered"));
+        panel.add(m_filterOptionPanel.getFilterConfigPanel(), gbc);
+        m_filterOptionPanel.getModel().addChangeListener(l -> System.out.println("triggered"));
         gbc.gridy++;
         panel.add(m_filePanel.getComponentPanel(), gbc);
         return panel;
@@ -237,10 +237,10 @@ public abstract class PortObjectIONodeDialog<C extends PortObjectIONodeConfig> e
     protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
         // save dialog settings
         m_config.saveConfigurationForDialog(settings);
-
         // save file panel and timeout settings
         m_filePanel.saveSettingsTo(settings);
         m_timeoutSpinner.saveSettingsTo(settings);
+        m_filterOptionPanel.saveSettingsTo(settings);
     }
 
     @Override
@@ -252,6 +252,7 @@ public abstract class PortObjectIONodeDialog<C extends PortObjectIONodeConfig> e
         // load file panel and timeout settings
         m_filePanel.loadSettingsFrom(settings, specs);
         m_timeoutSpinner.loadSettingsFrom(settings, specs);
+        m_filterOptionPanel.loadSettingsFrom(settings, specs);
 
         // update the spinner
         updateFileChooserBasedEnabledness((SettingsModelFileChooser2)m_filePanel.getModel());

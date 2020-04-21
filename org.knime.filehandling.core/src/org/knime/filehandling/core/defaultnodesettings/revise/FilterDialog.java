@@ -62,20 +62,19 @@ import javax.swing.JPanel;
 import javax.swing.WindowConstants;
 
 import org.knime.core.node.KNIMEConstants;
-import org.knime.filehandling.core.filefilter.FileFilterPanel;
 
 /**
  * Dialog for file filtering options.
  *
  * @author Björn Lohrmann, KNIME GmbH, Berlin, Germany
  */
-class FileAndFolderFilterConfigDialog extends JDialog {
+class FilterDialog extends JDialog {
 
     /** Serial version UID */
     private static final long serialVersionUID = 1L;
 
     /** Panel holding the file filtering components */
-    private final FileFilterPanel m_fileFilterPanel;
+    private final FilterDialogPanel m_filterPanel;
 
     /** Title for the dialog */
     private static final String TITLE_STRING = "File filter configuration";
@@ -98,11 +97,11 @@ class FileAndFolderFilterConfigDialog extends JDialog {
      * @param owner the owner frame
      * @param panel the file filter panel
      */
-    public FileAndFolderFilterConfigDialog(final Frame owner, final FileFilterPanel panel) {
+    public FilterDialog(final Frame owner, final FilterDialogPanel panel) {
         super(owner, TITLE_STRING, true);
         KNIMEConstants.getKNIMEIcon16X16().ifPresent(i -> setIconImage(i.getImage()));
 
-        m_fileFilterPanel = panel;
+        m_filterPanel = panel;
         final JPanel rootPanel = new JPanel();
         rootPanel.setLayout(new GridBagLayout());
 
@@ -116,7 +115,7 @@ class FileAndFolderFilterConfigDialog extends JDialog {
         gc.weightx = 1;
         gc.weighty = 1;
 
-        rootPanel.add(m_fileFilterPanel, gc);
+        rootPanel.add(m_filterPanel, gc);
 
         //buttons
         gc.anchor = GridBagConstraints.LINE_END;

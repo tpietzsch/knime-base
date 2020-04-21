@@ -97,7 +97,7 @@ public class FileFilterDialog extends JDialog {
      * @param owner the owner frame
      * @param panel the file filter panel
      */
-    public FileFilterDialog(final Frame owner, final JPanel panel) {
+    public FileFilterDialog(final Frame owner, final FileFilterPanel panel) {
         super(owner, TITLE_STRING, true);
         KNIMEConstants.getKNIMEIcon16X16().ifPresent(i -> setIconImage(i.getImage()));
 

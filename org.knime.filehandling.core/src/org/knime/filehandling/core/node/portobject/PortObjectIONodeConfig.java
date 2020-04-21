@@ -55,7 +55,8 @@ import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.util.FileUtil;
 import org.knime.filehandling.core.defaultnodesettings.SettingsModelFileChooser2;
-import org.knime.filehandling.core.defaultnodesettings.revise.FilterOptionSettings;
+import org.knime.filehandling.core.defaultnodesettings.revise.FilterModeDialogComponent.FilterOption;
+import org.knime.filehandling.core.defaultnodesettings.revise.FilterModeSettingsModel;
 import org.knime.filehandling.core.node.portobject.writer.PortObjectWriterNodeConfig;
 
 /**
@@ -79,7 +80,7 @@ public abstract class PortObjectIONodeConfig {
     private final SettingsModelIntegerBounded m_timeoutModel = new SettingsModelIntegerBounded(CFG_CONNECTION_TIMEOUT,
         FileUtil.getDefaultURLTimeoutMillis(), 0, Integer.MAX_VALUE);
 
-    private FilterOptionSettings m_s = new FilterOptionSettings();
+    private FilterModeSettingsModel m_s = new FilterModeSettingsModel("asd", FilterOption.FILE);
 
     /**
      * Constructor for configs in which the file chooser doesn't filter on file suffixes.
@@ -134,11 +135,11 @@ public abstract class PortObjectIONodeConfig {
     protected void saveConfigurationForModel(final NodeSettingsWO settings) {
         m_fileChooserModel.saveSettingsTo(settings);
         m_timeoutModel.saveSettingsTo(settings);
-        try {
-            m_s.saveSettingsTo(settings.addConfig("asd"));
-        } catch (InvalidSettingsException ex) {
-            System.out.println(ex);
-        }
+//        try {
+//            m_s.saveSettingsTo(settings.addConfig("asd"));
+//        } catch (InvalidSettingsException ex) {
+//            System.out.println(ex);
+//        }
     }
 
     /**
@@ -150,7 +151,7 @@ public abstract class PortObjectIONodeConfig {
     protected void loadConfigurationForModel(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_fileChooserModel.loadSettingsFrom(settings);
         m_timeoutModel.loadSettingsFrom(settings);
-        m_s.loadSettingsFrom(settings.getConfig("asd"));
+//        m_s.loadSettingsFrom(settings.getConfig("asd"));
     }
 
     /**
@@ -179,14 +180,14 @@ public abstract class PortObjectIONodeConfig {
     /**
      * @return the s
      */
-    public FilterOptionSettings getS() {
+    public FilterModeSettingsModel getS() {
         return m_s;
     }
 
     /**
      * @param s the s to set
      */
-    public void setS(final FilterOptionSettings s) {
+    public void setS(final FilterModeSettingsModel s) {
         m_s = s;
     }
 

@@ -59,7 +59,7 @@ import org.knime.filehandling.core.filefilter.FileFilterPanel;
  * @author Simon Schmid, KNIME GmbH, Konstanz, Germany
  * @author Mareike Hoeger, KNIME GmbH, Konstanz, Germany
  */
-class FileAndFolderFilterConfigSettings {
+class FilterDialogSettings {
 
     /** Configuration key for the option to filter files by extension in selected folder. */
     private static final String CFG_FILES_FILTER_BY_EXTENSION = "files_filter_extension";
@@ -163,14 +163,63 @@ class FileAndFolderFilterConfigSettings {
     /** The default filter expression. */
     private static final String DEFAULT_FILTER_EXPRESSION = "*";
 
+    //    /** Configuration key for the option to filter files by extension in selected folder. */
+    //    private static final boolean DEFAULT_FILES_FILTER_BY_EXTENSION = false;
+    //
+    //    /** Configuration key to store the filter expression for the file extension filter. */
+    //    private static final String DEFAULT_FILES_EXTENSION_EXPRESSION = "files_extension_expression";
+    //
+    //    /** Configuration key to store whether the filter expression for file extensions is case sensitive or not. */
+    //    private static final boolean DEFAULT_FILES_EXTENSION_CASE_SENSITIVE = false;
+    //
+    //    /** Configuration key for the option to filter files by name in selected folder. */
+    //    private static final boolean DEFAULT_FILES_FILTER_BY_NAME = false;
+    //
+    //    /** Configuration key to store the filter expression for the file name filter. */
+    //    private static final String DEFAULT_FILES_NAME_EXPRESSION = "files_name_expression";
+    //
+    //    /** Configuration key to store whether the filter expression for file names is case sensitive or not. */
+    //    private static final boolean DEFAULT_FILES_NAME_CASE_SENSITIVE = false;
+    //
+    //    /** Configuration key to store the file name filter mode. */
+    //    private static final FilterType DEFAULT_FILES_NAME_FILTER_MODE = FilterType.WILDCARD;
+    //
+    //    /** Configuration key for the option to filter hidden files. */
+    //    private static final boolean DEFAULT_FILTER_HIDDEN_FILES = true;
+    //
+    //    /** Configuration key for the option to filter folders by extension in selected folder. */
+    //    private static final boolean DEFAULT_FOLDERS_FILTER_BY_EXTENSION = false;
+    //
+    //    /** Configuration key to store the filter expression for the folder extension filter. */
+    //    private static final String DEFAULT_FOLDERS_EXTENSION_EXPRESSION = "folders_extension_expression";
+    //
+    //    /** Configuration key to store whether the filter expression for folder extensions is case sensitive or not. */
+    //    private static final boolean DEFAULT_FOLDERS_EXTENSION_CASE_SENSITIVE = false;
+    //
+    //    /** Configuration key for the option to filter folders by name in selected folder. */
+    //    private static final boolean DEFAULT_FOLDERS_FILTER_BY_NAME = false;
+    //
+    //    /** Configuration key to store the filter expression for the folder name filter. */
+    //    private static final String DEFAULT_FOLDERS_NAME_EXPRESSION = "folders_name_expression";
+    //
+    //    /** Configuration key to store whether the filter expression for folder names is case sensitive or not. */
+    //    private static final boolean DEFAULT_FOLDERS_NAME_CASE_SENSITIVE = false;
+    //
+    //    /** Configuration key to store the folder name filter mode. */
+    //    private static final FilterType DEFAULT_FOLDERS_NAME_FILTER_MODE = FilterType.WILDCARD;
+    //
+    //    /** Configuration key for the option to filter hidden folders. */
+    //    private static final boolean DEFAULT_FILTER_HIDDEN_FOLDERS = true;
+
     /**
      * Default constructor for filter settings.
      */
-    public FileAndFolderFilterConfigSettings() {
+    public FilterDialogSettings() {
         this(new String[0]);
     }
 
-    private FileAndFolderFilterConfigSettings(final boolean filterFilesByExtension, final String filesExtensionExpression) {
+    private FilterDialogSettings(final boolean filterFilesByExtension,
+        final String filesExtensionExpression) {
         m_filterHiddenFiles = true;
         m_filterFilesByExtension = filterFilesByExtension;
         m_filterFilesByName = false;
@@ -195,7 +244,7 @@ class FileAndFolderFilterConfigSettings {
      *
      * @param fileSuffixes possibly empty array for file suffixes that should be filtered
      */
-    public FileAndFolderFilterConfigSettings(final String[] fileSuffixes) {
+    public FilterDialogSettings(final String[] fileSuffixes) {
         this(fileSuffixes.length > 0,
             fileSuffixes.length > 0 ? String.join(";", fileSuffixes) : DEFAULT_FILTER_EXPRESSION);
     }
@@ -450,11 +499,37 @@ class FileAndFolderFilterConfigSettings {
     }
 
     /**
-     * Loads the filter configuration from the given {@link Config} into the {@link FileAndFolderFilterConfigSettings}.
+     * Loads the filter configuration from the given {@link Config} into the {@link FilterDialogSettings}.
+     *
+     * @param config the configuration to load the values from
+     * @throws InvalidSettingsException
+     */
+    public void loadFromConfigForModel(final Config config) throws InvalidSettingsException {
+        m_filterFilesByExtension = config.getBoolean(CFG_FILES_FILTER_BY_EXTENSION);
+        m_filesExtensionExpression = config.getString(CFG_FILES_EXTENSION_EXPRESSION);
+        m_filesExtensionCaseSensitive = config.getBoolean(CFG_FILES_EXTENSION_CASE_SENSITIVE);
+        m_filterFilesByName = config.getBoolean(CFG_FILES_FILTER_BY_NAME);
+        m_filesNameExpression = config.getString(CFG_FILES_NAME_EXPRESSION);
+        m_filesNameCaseSensitive = config.getBoolean(CFG_FILES_NAME_CASE_SENSITIVE);
+        m_filesNameFilterMode = FilterType.valueOf(config.getString(CFG_FILES_NAME_FILTER_MODE));
+        m_filterHiddenFiles = config.getBoolean(CFG_FILTER_HIDDEN_FILES);
+
+        m_filterFoldersByExtension = config.getBoolean(CFG_FOLDERS_FILTER_BY_EXTENSION);
+        m_foldersExtensionExpression = config.getString(CFG_FOLDERS_EXTENSION_EXPRESSION);
+        m_foldersExtensionCaseSensitive = config.getBoolean(CFG_FOLDERS_EXTENSION_CASE_SENSITIVE);
+        m_filterFoldersByName = config.getBoolean(CFG_FOLDERS_FILTER_BY_NAME);
+        m_foldersNameExpression = config.getString(CFG_FOLDERS_NAME_EXPRESSION);
+        m_foldersNameCaseSensitive = config.getBoolean(CFG_FOLDERS_NAME_CASE_SENSITIVE);
+        m_foldersNameFilterMode = FilterType.valueOf(config.getString(CFG_FOLDERS_NAME_FILTER_MODE));
+        m_filterHiddenFolders = config.getBoolean(CFG_FILTER_HIDDEN_FOLDERS);
+    }
+
+    /**
+     * Loads the filter configuration from the given {@link Config} into the {@link FilterDialogSettings}.
      *
      * @param config the configuration to load the values from
      */
-    public void loadFromConfig(final Config config) {
+    public void loadFromConfigForDialog(final Config config) {
         m_filterFilesByExtension = config.getBoolean(CFG_FILES_FILTER_BY_EXTENSION, m_filterFilesByExtension);
         m_filesExtensionExpression = config.getString(CFG_FILES_EXTENSION_EXPRESSION, m_filesExtensionExpression);
         m_filesExtensionCaseSensitive =
