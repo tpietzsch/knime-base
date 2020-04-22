@@ -58,6 +58,7 @@ import java.awt.event.ItemListener;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
@@ -105,6 +106,7 @@ public final class CSVReaderNodeDialog extends NodeDialogPane {
     private final JCheckBox m_limitAnalysisChecker;
     private final JSpinner m_limitAnalysisSpinner;
     private final CharsetNamePanel m_encodingPanel;
+    private final JButton m_startAutodetection;
 
 
     /** Create new dialog, init layout.*/
@@ -125,6 +127,7 @@ public final class CSVReaderNodeDialog extends NodeDialogPane {
         m_supportShortLinesChecker = new JCheckBox("Support Short Lines");
         m_skipFirstLinesChecker = new JCheckBox("Skip first lines ");
         m_skipFirstLinesSpinner = new JSpinner(new SpinnerNumberModel(1, 1, Integer.MAX_VALUE, 1));
+        m_startAutodetection = new JButton("Autodetect CSV format");
         m_skipFirstLinesChecker.addItemListener(new ItemListener() {
             @Override
             public void itemStateChanged(final ItemEvent e) {
@@ -151,12 +154,18 @@ public final class CSVReaderNodeDialog extends NodeDialogPane {
         });
         m_limitAnalysisChecker.doClick();
 
+        m_startAutodetection.addActionListener(e -> startAutodetection());
+
         addTab("Settings", initLayout());
 
         addTab("Limit Rows", getLimitRowsPanel());
 
         m_encodingPanel = new CharsetNamePanel(new FileReaderSettings());
         addTab("Encoding", m_encodingPanel);
+    }
+
+    private void startAutodetection() {
+        //TODO: AutoDetect CSV format
     }
 
     /**
@@ -239,6 +248,10 @@ public final class CSVReaderNodeDialog extends NodeDialogPane {
         gbc.gridx = 0;
         gbc.gridy += 1;
         optionsPanel.add(getInFlowLayout(m_supportShortLinesChecker), gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy += 1;
+        optionsPanel.add(getInFlowLayout(m_startAutodetection), gbc);
 
         //empty panel to eat up extra space
         gbc.gridy += 1;
