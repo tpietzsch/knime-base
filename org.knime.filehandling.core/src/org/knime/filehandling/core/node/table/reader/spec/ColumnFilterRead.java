@@ -59,8 +59,9 @@ import org.knime.filehandling.core.node.table.reader.read.Read;
  * A {@link Read} that filters an individual column.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @param <V> the type of tokens making up a row in the read
  */
-final class ColumnFilterRead<V> extends AbstractReadDecorator<V> {
+public final class ColumnFilterRead<V> extends AbstractReadDecorator<V> {
 
     private final ColumnFilterRandomAccessible<V> m_filterDecorator;
 
@@ -70,7 +71,7 @@ final class ColumnFilterRead<V> extends AbstractReadDecorator<V> {
      * @param columnToFilter the index of the column to filter (if the RandomAccessible returned by the underlying Read
      *            is smaller than columnToFilter, then no column is filtered)
      */
-    ColumnFilterRead(final Read<V> source, final int columnToFilter) {
+    public ColumnFilterRead(final Read<V> source, final int columnToFilter) {
         super(source);
         CheckUtils.checkArgument(columnToFilter >= 0, "The columnToFilter argument must be >= 0.");
         m_filterDecorator = new ColumnFilterRandomAccessible<>(columnToFilter);
