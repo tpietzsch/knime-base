@@ -43,7 +43,7 @@
  * -------------------------------------------------------------------
  * 
  */
-package org.knime.base.node.io.csvwriter;
+package org.knime.base.node.io.filehandling.csv.writer;
 
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;

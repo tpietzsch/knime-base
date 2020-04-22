@@ -84,10 +84,14 @@ import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.util.FileUtil;
 
 /**
- * Dialog to choose a file for csv output.
+ * Dialog to choose a file for csv output. Deprecated in favor of a newer Node supporting
+ * the new file chooser dialog.
  *
  * @author Bernd Wiswedel, University of Konstanz
+ * @author Temesgen H. Dadi, KNIME GmbH, Berlin, Germany (deprecated)
+ * @deprecated
  */
+@Deprecated
 public class CSVWriterNodeDialog extends NodeDialogPane {
 
     /** textfield to enter file name. */

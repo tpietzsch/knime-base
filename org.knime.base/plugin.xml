@@ -609,9 +609,12 @@
       <node deprecated="true"
             category-path="/analytics/mining/nn/pnn"
             factory-class="org.knime.base.node.mine.bfn.radial.RadialBasisFunctionPredictorNodeFactory"/>
-      <node
+      <node  deprecated="true"
             category-path="/io/write"
             factory-class="org.knime.base.node.io.csvwriter.CSVWriterNodeFactory"/>
+      <node
+            category-path="/io/write"
+            factory-class="org.knime.base.node.io.filehandling.csv.writer.CSVWriterNodeFactory"/>
       <node
             category-path="/manipulation/column/column-split+combine"
             factory-class="org.knime.base.node.preproc.joiner.Joiner2NodeFactory"/>

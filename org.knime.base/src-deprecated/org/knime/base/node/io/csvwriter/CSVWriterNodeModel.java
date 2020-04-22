@@ -92,15 +92,19 @@ import org.knime.core.node.util.StringHistory;
 import org.knime.core.util.FileUtil;
 
 /**
- * NodeModel to write a DataTable to a CSV (comma separated value) file.
+ * NodeModel to write a DataTable to a CSV (comma separated value) file. Deprecated in favor of a newer Node supporting
+ * the new file chooser dialog.
  *
  * @author Bernd Wiswedel, University of Konstanz
+ *
+ * @author Temesgen H. Dadi, KNIME GmbH, Berlin, Germany (deprecated)
+ * @deprecated
  */
+@Deprecated
 public class CSVWriterNodeModel extends NodeModel {
 
     /** The node logger for this class. */
-    private static final NodeLogger LOGGER =
-            NodeLogger.getLogger(CSVWriterNodeModel.class);
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(CSVWriterNodeModel.class);
 
     private FileWriterNodeSettings m_settings;
 
@@ -132,15 +136,14 @@ public class CSVWriterNodeModel extends NodeModel {
      */
     @Override
     public InputPortRole[] getInputPortRoles() {
-        return new InputPortRole[] {InputPortRole.NONDISTRIBUTED_STREAMABLE};
+        return new InputPortRole[]{InputPortRole.NONDISTRIBUTED_STREAMABLE};
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    protected void validateSettings(final NodeSettingsRO settings)
-            throws InvalidSettingsException {
+    protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
 
         // the constructor complains if settings are missing
         FileWriterNodeSettings fws = new FileWriterNodeSettings(settings);
@@ -152,34 +155,26 @@ public class CSVWriterNodeModel extends NodeModel {
         if (notEmpty(fws.getColSeparator())) {
             if (notEmpty(fws.getMissValuePattern())) {
                 if (fws.getMissValuePattern().contains(fws.getColSeparator())) {
-                    throw new InvalidSettingsException(
-                            "The pattern for missing values ('"
-                                    + fws.getMissValuePattern()
-                                    + "') must not contain the data "
-                                    + "separator ('" + fws.getColSeparator()
-                                    + "').");
+                    throw new InvalidSettingsException("The pattern for missing values ('" + fws.getMissValuePattern()
+                        + "') must not contain the data " + "separator ('" + fws.getColSeparator() + "').");
                 }
             }
 
             if (notEmpty(fws.getCommentBegin())) {
                 if (fws.getCommentBegin().contains(fws.getColSeparator())) {
-                    throw new InvalidSettingsException(
-                            "The left quote pattern ('" + fws.getQuoteBegin()
-                                    + "') must not contain the data "
-                                    + "separator ('" + fws.getColSeparator()
-                                    + "').");
+                    throw new InvalidSettingsException("The left quote pattern ('" + fws.getQuoteBegin()
+                        + "') must not contain the data " + "separator ('" + fws.getColSeparator() + "').");
                 }
             }
         }
 
         // if we are supposed to add some creation data, we need to know
         // the comment pattern
-        if (fws.addCreationTime() || fws.addCreationUser()
-                || fws.addTableName() || notEmpty(fws.getCustomCommentLine())) {
+        if (fws.addCreationTime() || fws.addCreationUser() || fws.addTableName()
+            || notEmpty(fws.getCustomCommentLine())) {
             if (isEmpty(fws.getCommentBegin())) {
                 throw new InvalidSettingsException(
-                        "The comment pattern must be defined in order to add "
-                                + "user, creation date or table name");
+                    "The comment pattern must be defined in order to add " + "user, creation date or table name");
             }
             // if the end pattern is empty, assume a single line comment and
             // write the comment begin pattern in every line.
@@ -187,21 +182,17 @@ public class CSVWriterNodeModel extends NodeModel {
 
         // if a custom comment line is specified, is must not contain the
         // comment end pattern
-        if (notEmpty(fws.getCustomCommentLine())
-                && notEmpty(fws.getCommentEnd())) {
+        if (notEmpty(fws.getCustomCommentLine()) && notEmpty(fws.getCommentEnd())) {
             if (fws.getCustomCommentLine().contains(fws.getCommentEnd())) {
                 throw new InvalidSettingsException(
-                        "The specified comment to add must not contain the"
-                                + " comment end pattern.");
+                    "The specified comment to add must not contain the" + " comment end pattern.");
             }
         }
 
         boolean isGzip = fws.isGzipOutput();
-        boolean isAppend = FileOverwritePolicy.Append.equals(
-            fws.getFileOverwritePolicy());
+        boolean isAppend = FileOverwritePolicy.Append.equals(fws.getFileOverwritePolicy());
         if (isGzip && isAppend) {
-            throw new InvalidSettingsException("Can't append to existing "
-                    + "file if output is gzip compressed");
+            throw new InvalidSettingsException("Can't append to existing " + "file if output is gzip compressed");
         }
     }
 
@@ -209,8 +200,7 @@ public class CSVWriterNodeModel extends NodeModel {
      * {@inheritDoc}
      */
     @Override
-    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
-            throws InvalidSettingsException {
+    protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
         m_settings = new FileWriterNodeSettings(settings);
     }
 
@@ -218,13 +208,13 @@ public class CSVWriterNodeModel extends NodeModel {
      * {@inheritDoc}
      */
     @Override
-    public StreamableOperator createStreamableOperator(final PartitionInfo partitionInfo, final PortObjectSpec[] inSpecs)
-        throws InvalidSettingsException {
+    public StreamableOperator createStreamableOperator(final PartitionInfo partitionInfo,
+        final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
 
         return new StreamableOperator() {
             @Override
             public void runFinal(final PortInput[] inputs, final PortOutput[] outputs, final ExecutionContext exec)
-                    throws Exception {
+                throws Exception {
                 assert outputs.length == 0;
                 RowInput input = (RowInput)inputs[0];
                 doIt(null, input, exec);
@@ -233,18 +223,17 @@ public class CSVWriterNodeModel extends NodeModel {
         };
     }
 
-
     /**
      * {@inheritDoc}
      */
     @Override
-    protected BufferedDataTable[] execute(final BufferedDataTable[] data,
-            final ExecutionContext exec) throws Exception {
+    protected BufferedDataTable[] execute(final BufferedDataTable[] data, final ExecutionContext exec)
+        throws Exception {
         return doIt(data[0], null, exec);
     }
 
     private BufferedDataTable[] doIt(final BufferedDataTable data, final RowInput input, final ExecutionContext exec)
-            throws Exception {
+        throws Exception {
 
         CheckUtils.checkDestinationFile(m_settings.getFileName(),
             m_settings.getFileOverwritePolicy() != FileOverwritePolicy.Abort);
@@ -332,27 +321,26 @@ public class CSVWriterNodeModel extends NodeModel {
                     Files.delete(localPath);
                     LOGGER.debug("File '" + m_settings.getFileName() + "' deleted after node has been canceled.");
                 } catch (IOException ex) {
-                    LOGGER.warn("Unable to delete file '"
-                            + m_settings.getFileName() + "' after cancellation: " + ex.getMessage(), ex);
+                    LOGGER.warn("Unable to delete file '" + m_settings.getFileName() + "' after cancellation: "
+                        + ex.getMessage(), ex);
                 }
             }
             throw e;
         }
 
     }
+
     /**
      * Writes a comment header to the file, if specified so in the settings.
      *
-     * @param settings where it is specified if and how to write the comment
-     *            header
+     * @param settings where it is specified if and how to write the comment header
      * @param file the writer to write the header out to.
      * @param inData the table that is going to be written in the file.
      * @param append If the output will be appended to an existing file
      * @throws IOException if something went wrong during writing.
      */
-    private void writeCommentHeader(final FileWriterNodeSettings settings,
-            final BufferedWriter file, final String tableName,
-            final boolean append) throws IOException {
+    private void writeCommentHeader(final FileWriterNodeSettings settings, final BufferedWriter file,
+        final String tableName, final boolean append) throws IOException {
         if ((file == null) || (settings == null)) {
             return;
         }
@@ -406,8 +394,7 @@ public class CSVWriterNodeModel extends NodeModel {
             if (!blockComment) {
                 file.write(settings.getCommentBegin());
             }
-            file.write(commentIndent + "The data was read from the \""
-                    + tableName + "\" data table.");
+            file.write(commentIndent + "The data was read from the \"" + tableName + "\" data table.");
             file.newLine();
         }
 
@@ -445,9 +432,8 @@ public class CSVWriterNodeModel extends NodeModel {
      * {@inheritDoc}
      */
     @Override
-    protected void loadInternals(final File nodeInternDir,
-            final ExecutionMonitor exec) throws IOException,
-            CanceledExecutionException {
+    protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
+        throws IOException, CanceledExecutionException {
         // no internals to save
     }
 
@@ -455,9 +441,8 @@ public class CSVWriterNodeModel extends NodeModel {
      * {@inheritDoc}
      */
     @Override
-    protected void saveInternals(final File nodeInternDir,
-            final ExecutionMonitor exec) throws IOException,
-            CanceledExecutionException {
+    protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
+        throws IOException, CanceledExecutionException {
         // nothing to save.
     }
 
@@ -465,16 +450,14 @@ public class CSVWriterNodeModel extends NodeModel {
      * {@inheritDoc}
      */
     @Override
-    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs)
-            throws InvalidSettingsException {
+    protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
         String warnMsg = "";
 
         /*
          * check file access
          */
-        String fileCheckWarning =
-                CheckUtils.checkDestinationFile(m_settings.getFileName(),
-                    m_settings.getFileOverwritePolicy() != FileOverwritePolicy.Abort);
+        String fileCheckWarning = CheckUtils.checkDestinationFile(m_settings.getFileName(),
+            m_settings.getFileOverwritePolicy() != FileOverwritePolicy.Abort);
         if (fileCheckWarning != null) {
             if (m_settings.getFileOverwritePolicy() == FileOverwritePolicy.Append) {
                 fileCheckWarning = fileCheckWarning.replace("overwritten", "appended");
@@ -482,39 +465,29 @@ public class CSVWriterNodeModel extends NodeModel {
             warnMsg = fileCheckWarning + "\n";
         }
 
-
         /*
          * check settings
          */
-        if (isEmpty(m_settings.getColSeparator())
-                && isEmpty(m_settings.getMissValuePattern())
-                && (isEmpty(m_settings.getQuoteBegin()) || isEmpty(m_settings
-                        .getQuoteEnd()))) {
+        if (isEmpty(m_settings.getColSeparator()) && isEmpty(m_settings.getMissValuePattern())
+            && (isEmpty(m_settings.getQuoteBegin()) || isEmpty(m_settings.getQuoteEnd()))) {
             // we will write the table out - but they will have a hard
             // time reading it in again.
-            warnMsg +=
-                    "No separator and no quotes and no missing value "
-                            + "pattern set."
-                            + "\nWritten data will be hard to read!";
+            warnMsg += "No separator and no quotes and no missing value " + "pattern set."
+                + "\nWritten data will be hard to read!";
         }
 
         DataTableSpec inSpec = inSpecs[0];
         for (int i = 0; i < inSpec.getNumColumns(); i++) {
             DataType c = inSpec.getColumnSpec(i).getType();
-            if (!c.isCompatible(DoubleValue.class)
-                    && !c.isCompatible(IntValue.class)
-                    && !c.isCompatible(StringValue.class)) {
-                throw new InvalidSettingsException(
-                        "Input table must only contain "
-                                + "String, Int, or Doubles");
+            if (!c.isCompatible(DoubleValue.class) && !c.isCompatible(IntValue.class)
+                && !c.isCompatible(StringValue.class)) {
+                throw new InvalidSettingsException("Input table must only contain " + "String, Int, or Doubles");
             }
         }
         if (inSpec.containsCompatibleType(DoubleValue.class)) {
-            if (m_settings.getColSeparator().indexOf(
-                    m_settings.getDecimalSeparator()) >= 0) {
-                warnMsg +=
-                        "The data separator contains (or is equal to) the "
-                                + "decimal separator\nWritten data will be hard to read!";
+            if (m_settings.getColSeparator().indexOf(m_settings.getDecimalSeparator()) >= 0) {
+                warnMsg += "The data separator contains (or is equal to) the "
+                    + "decimal separator\nWritten data will be hard to read!";
             }
         }
 
