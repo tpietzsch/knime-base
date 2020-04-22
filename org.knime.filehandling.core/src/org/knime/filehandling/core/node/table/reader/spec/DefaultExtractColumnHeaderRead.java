@@ -44,30 +44,69 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Mar 23, 2020 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Apr 22, 2020 (Mark Ortmann, KNIME GmbH, Berlin, Germany): created
  */
 package org.knime.filehandling.core.node.table.reader.spec;
 
 import java.io.IOException;
 import java.util.Optional;
 
+import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.node.table.reader.randomaccess.RandomAccessible;
+import org.knime.filehandling.core.node.table.reader.read.AbstractReadDecorator;
 import org.knime.filehandling.core.node.table.reader.read.Read;
 
 /**
  * A read that extracts the row containing the table headers from the provided {@link Read source}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @param <V> the type of tokens making up a row in the read
  */
-public interface ExtractColumnHeaderRead<V> extends Read<V> {
+final class DefaultExtractColumnHeaderRead<V> extends AbstractReadDecorator<V> implements ExtractColumnHeaderRead<V> {
+    private final long m_columnHeaderIdx;
+
+    private RandomAccessible<V> m_columnHeaders = null;
+
+    private long m_rowIdx = -1;
 
     /**
-     * If necessary keeps reading until the headers are read and returns them.
+     * Constructor.
      *
-     * @return the {@link RandomAccessible} containing the column headers
-     * @throws IOException if there I/O problems while reading the headers
+     * @param source the underlying read to extract the column header from
+     * @param columnHeaderIdx index of the column header row (set to -1 if no column header is contained)
      */
-    public Optional<RandomAccessible<V>> getColumnHeaders() throws IOException;
+    DefaultExtractColumnHeaderRead(final Read<V> source, final long columnHeaderIdx) {
+        super(source);
+        m_columnHeaderIdx = columnHeaderIdx;
+    }
+
+    @Override
+    public Optional<RandomAccessible<V>> getColumnHeaders() throws IOException {
+        if (m_columnHeaderIdx >= 0 && m_columnHeaders == null) {
+            // make sure that the column headers are read
+            while (next() != null && m_columnHeaders == null) {
+                // all the action is in the header
+            }
+        }
+        return Optional.ofNullable(m_columnHeaders);
+    }
+
+    /**
+     * @return true if the next row contains the column headers
+     */
+    private boolean isColumnHeaderRow() {
+        return m_rowIdx == m_columnHeaderIdx;
+    }
+
+    @Override
+    public RandomAccessible<V> next() throws IOException {
+        m_rowIdx++;
+        if (isColumnHeaderRow()) {
+            RandomAccessible<V> colHeaderRow = getSource().next();
+            CheckUtils.checkState(colHeaderRow != null,
+                "The row containing the column headers is not part of the table.");
+            m_columnHeaders = colHeaderRow;
+        }
+        return getSource().next();
+    }
 
 }
